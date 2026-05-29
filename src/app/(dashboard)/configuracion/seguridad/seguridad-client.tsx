@@ -102,8 +102,8 @@ export function SeguridadClient() {
     { id: 'config', label: 'Configuración de seguridad', icon: Settings2 },
   ];
 
-  const uniqueEntities = [...new Set(logs.map((l) => l.entity).filter(Boolean))];
-  const uniqueActions = [...new Set(logs.map((l) => l.action).filter(Boolean))];
+  const uniqueEntities = Array.from(new Set(logs.map((l: any) => l.entity).filter(Boolean)));
+  const uniqueActions = Array.from(new Set(logs.map((l: any) => l.action).filter(Boolean)));
 
   // Stats
   const todayLogs = logs.filter((l) => {
