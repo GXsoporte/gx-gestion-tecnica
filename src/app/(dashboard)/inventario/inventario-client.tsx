@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -40,6 +41,11 @@ const TYPE_ICONS: Record<string, React.ElementType> = {
 };
 
 export function InventarioClient() {
+  const { data: session } = useSession();
+  const role = session?.user?.role ?? '';
+  const canEdit   = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'TECHNICIAN'].includes(role);
+  const canDelete = ['SUPER_ADMIN', 'COMPANY_ADMIN'].includes(role);
+
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
@@ -159,34 +165,38 @@ export function InventarioClient() {
             <Eye className="w-3.5 h-3.5" />
             Ver
           </Link>
-          <button
-            onClick={() => { setSelectedAsset(row); setShowModal(true); }}
-            className="p-1.5 hover:bg-blue-50 hover:text-blue-600 rounded transition-colors text-muted-foreground"
-            title="Editar"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-          {confirmDeleteId === row.id ? (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleDelete(row.id)}
-                disabled={deleting}
-                className="text-xs text-white bg-red-600 hover:bg-red-700 px-2 py-0.5 rounded font-medium"
-              >
-                {deleting ? '...' : 'Confirmar'}
-              </button>
-              <button onClick={() => setConfirmDeleteId(null)} className="p-0.5 hover:bg-muted rounded">
-                <X className="w-3 h-3 text-muted-foreground" />
-              </button>
-            </div>
-          ) : (
+          {canEdit && (
             <button
-              onClick={() => setConfirmDeleteId(row.id)}
-              className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded transition-colors text-muted-foreground"
-              title="Eliminar"
+              onClick={() => { setSelectedAsset(row); setShowModal(true); }}
+              className="p-1.5 hover:bg-blue-50 hover:text-blue-600 rounded transition-colors text-muted-foreground"
+              title="Editar"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Pencil className="w-3.5 h-3.5" />
             </button>
+          )}
+          {canDelete && (
+            confirmDeleteId === row.id ? (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleDelete(row.id)}
+                  disabled={deleting}
+                  className="text-xs text-white bg-red-600 hover:bg-red-700 px-2 py-0.5 rounded font-medium"
+                >
+                  {deleting ? '...' : 'Confirmar'}
+                </button>
+                <button onClick={() => setConfirmDeleteId(null)} className="p-0.5 hover:bg-muted rounded">
+                  <X className="w-3 h-3 text-muted-foreground" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDeleteId(row.id)}
+                className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded transition-colors text-muted-foreground"
+                title="Eliminar"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )
           )}
         </div>
       ),
@@ -200,13 +210,15 @@ export function InventarioClient() {
         description="Hoja de vida y control de todos los equipos tecnológicos"
         breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Inventario' }]}
         actions={
-          <button
-            onClick={() => { setSelectedAsset(null); setShowModal(true); }}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Nuevo Activo
-          </button>
+          canEdit ? (
+            <button
+              onClick={() => { setSelectedAsset(null); setShowModal(true); }}
+              className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Nuevo Activo
+            </button>
+          ) : undefined
         }
       />
 
