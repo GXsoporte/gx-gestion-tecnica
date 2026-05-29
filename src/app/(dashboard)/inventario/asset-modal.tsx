@@ -137,7 +137,35 @@ export function AssetModal({ asset, onClose, onSuccess }: AssetModalProps) {
             </div>
             <div>
               <label className="form-label mb-1.5 block">Marca</label>
-              <input {...register('brand')} placeholder="Dell, HP, Lenovo..." className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              <input
+                {...register('brand')}
+                list="brand-options"
+                placeholder="Seleccionar o escribir marca..."
+                autoComplete="off"
+                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <datalist id="brand-options">
+                <option value="Dell" />
+                <option value="HP" />
+                <option value="Lenovo" />
+                <option value="ASUS" />
+                <option value="Acer" />
+                <option value="Apple" />
+                <option value="Samsung" />
+                <option value="MSI" />
+                <option value="Toshiba" />
+                <option value="Huawei" />
+                <option value="Microsoft" />
+                <option value="LG" />
+                <option value="Sony" />
+                <option value="Epson" />
+                <option value="Canon" />
+                <option value="Brother" />
+                <option value="Xerox" />
+                <option value="Cisco" />
+                <option value="Ubiquiti" />
+                <option value="TP-Link" />
+              </datalist>
             </div>
             <div>
               <label className="form-label mb-1.5 block">Modelo</label>
@@ -172,19 +200,101 @@ export function AssetModal({ asset, onClose, onSuccess }: AssetModalProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="form-label mb-1.5 block">Procesador</label>
-                <input {...register('processor')} placeholder="Intel Core i7-11700" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                <input
+                  {...register('processor')}
+                  list="processor-options"
+                  placeholder="Ej: Intel Core i7-11700"
+                  autoComplete="off"
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <datalist id="processor-options">
+                  <option value="Intel Core i3 (12a gen)" />
+                  <option value="Intel Core i5 (12a gen)" />
+                  <option value="Intel Core i7 (12a gen)" />
+                  <option value="Intel Core i9 (12a gen)" />
+                  <option value="Intel Core i3 (13a gen)" />
+                  <option value="Intel Core i5 (13a gen)" />
+                  <option value="Intel Core i7 (13a gen)" />
+                  <option value="Intel Core i9 (13a gen)" />
+                  <option value="Intel Pentium" />
+                  <option value="Intel Celeron" />
+                  <option value="AMD Ryzen 3" />
+                  <option value="AMD Ryzen 5" />
+                  <option value="AMD Ryzen 7" />
+                  <option value="AMD Ryzen 9" />
+                  <option value="Apple M1" />
+                  <option value="Apple M2" />
+                  <option value="Apple M3" />
+                </datalist>
               </div>
               <div>
                 <label className="form-label mb-1.5 block">RAM</label>
-                <input {...register('ram')} placeholder="16 GB DDR4" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                <input
+                  {...register('ram')}
+                  list="ram-options"
+                  placeholder="Ej: 16 GB DDR4"
+                  autoComplete="off"
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <datalist id="ram-options">
+                  <option value="4 GB DDR4" />
+                  <option value="8 GB DDR4" />
+                  <option value="16 GB DDR4" />
+                  <option value="32 GB DDR4" />
+                  <option value="64 GB DDR4" />
+                  <option value="8 GB DDR5" />
+                  <option value="16 GB DDR5" />
+                  <option value="32 GB DDR5" />
+                </datalist>
               </div>
               <div>
                 <label className="form-label mb-1.5 block">Almacenamiento</label>
-                <input {...register('storage')} placeholder="512 GB SSD" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                <input
+                  {...register('storage')}
+                  list="storage-options"
+                  placeholder="Ej: 512 GB SSD"
+                  autoComplete="off"
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <datalist id="storage-options">
+                  <option value="128 GB SSD" />
+                  <option value="256 GB SSD" />
+                  <option value="480 GB SSD" />
+                  <option value="512 GB SSD" />
+                  <option value="1 TB SSD" />
+                  <option value="2 TB SSD" />
+                  <option value="500 GB HDD" />
+                  <option value="1 TB HDD" />
+                  <option value="2 TB HDD" />
+                </datalist>
               </div>
               <div>
                 <label className="form-label mb-1.5 block">Sistema operativo</label>
-                <input {...register('operatingSystem')} placeholder="Windows 11 Pro" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                <input
+                  {...register('operatingSystem')}
+                  list="os-options"
+                  placeholder="Seleccionar o escribir SO..."
+                  autoComplete="off"
+                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+                <datalist id="os-options">
+                  <option value="Windows 11 Pro" />
+                  <option value="Windows 11 Home" />
+                  <option value="Windows 10 Pro" />
+                  <option value="Windows 10 Home" />
+                  <option value="Windows Server 2022" />
+                  <option value="Windows Server 2019" />
+                  <option value="macOS Sonoma" />
+                  <option value="macOS Ventura" />
+                  <option value="macOS Monterey" />
+                  <option value="Ubuntu 24.04 LTS" />
+                  <option value="Ubuntu 22.04 LTS" />
+                  <option value="Debian" />
+                  <option value="CentOS" />
+                  <option value="Chrome OS" />
+                  <option value="Android" />
+                  <option value="Sin sistema operativo" />
+                </datalist>
               </div>
               <div>
                 <label className="form-label mb-1.5 block">Fecha de compra</label>
