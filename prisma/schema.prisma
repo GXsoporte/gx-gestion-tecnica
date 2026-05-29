@@ -177,6 +177,7 @@ model ClientUser {
   clientId       String
   companyId      String
   name           String
+  cargo          String?
   pcUsername     String?
   pcPassword     String?
   adminUsername  String?
@@ -185,6 +186,7 @@ model ClientUser {
   email1Password String?
   email2         String?
   email2Password String?
+  platforms      String?  // JSON: [{name, username, password}]
   notes          String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

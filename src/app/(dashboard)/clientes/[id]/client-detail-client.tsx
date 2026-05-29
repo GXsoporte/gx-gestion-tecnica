@@ -9,7 +9,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, Building2, Mail, Phone, MapPin, Ticket, ClipboardList,
   Monitor, Loader2, ExternalLink, Users, Plus, Pencil, Trash2, X,
-  Eye, EyeOff, User,
+  Eye, EyeOff, User, Globe, Briefcase,
 } from 'lucide-react';
 import {
   cn, formatDate,
@@ -284,7 +284,12 @@ export function ClientDetailClient({ id }: { id: string }) {
                     </div>
                     <div>
                       <p className="text-sm font-semibold">{u.name}</p>
-                      {u.notes && <p className="text-xs text-muted-foreground">{u.notes}</p>}
+                      {u.cargo && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Briefcase className="w-3 h-3" />{u.cargo}
+                        </p>
+                      )}
+                      {!u.cargo && u.notes && <p className="text-xs text-muted-foreground">{u.notes}</p>}
                     </div>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -349,6 +354,24 @@ export function ClientDetailClient({ id }: { id: string }) {
                     </div>
                   )}
                 </div>
+
+                {/* Plataformas */}
+                {Array.isArray(u.platforms) && u.platforms.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-[10px] font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                      <Globe className="w-3 h-3" /> Otras plataformas
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                      {u.platforms.map((p: any, i: number) => (
+                        <div key={i} className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-lg p-2.5">
+                          <p className="text-[10px] font-bold text-orange-700 dark:text-orange-400 mb-1 truncate">{p.name}</p>
+                          {p.username && <p className="text-xs font-mono truncate text-foreground">{p.username}</p>}
+                          <MaskedField value={p.password} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -5,8 +5,15 @@ import { z } from 'zod';
 
 const db = prisma as any;
 
+const platformSchema = z.object({
+  name:     z.string().min(1),
+  username: z.string().optional(),
+  password: z.string().optional(),
+});
+
 const updateSchema = z.object({
   name:           z.string().min(1).optional(),
+  cargo:          z.string().optional(),
   pcUsername:     z.string().optional(),
   pcPassword:     z.string().optional(),
   adminUsername:  z.string().optional(),
@@ -15,6 +22,7 @@ const updateSchema = z.object({
   email1Password: z.string().optional(),
   email2:         z.string().optional(),
   email2Password: z.string().optional(),
+  platforms:      z.array(platformSchema).optional(),
   notes:          z.string().optional(),
 });
 
@@ -40,9 +48,15 @@ export async function PATCH(
     const body = await req.json();
     const data = updateSchema.parse(body);
 
+    const { platforms, ...rest } = data;
     const updated = await db.clientUser.update({
       where: { id: params.userId },
-      data,
+      data: {
+        ...rest,
+        ...(platforms !== undefined
+          ? { platforms: JSON.stringify(platforms) }
+          : {}),
+      },
     });
 
     await logAudit('UPDATE', 'ClientUser', params.userId, client.companyId, session.user.id);

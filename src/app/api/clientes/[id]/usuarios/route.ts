@@ -5,8 +5,15 @@ import { z } from 'zod';
 
 const db = prisma as any;
 
+const platformSchema = z.object({
+  name:     z.string().min(1),
+  username: z.string().optional(),
+  password: z.string().optional(),
+});
+
 const userSchema = z.object({
   name:           z.string().min(1, 'El nombre es requerido'),
+  cargo:          z.string().optional(),
   pcUsername:     z.string().optional(),
   pcPassword:     z.string().optional(),
   adminUsername:  z.string().optional(),
@@ -15,6 +22,7 @@ const userSchema = z.object({
   email1Password: z.string().optional(),
   email2:         z.string().optional(),
   email2Password: z.string().optional(),
+  platforms:      z.array(platformSchema).optional(),
   notes:          z.string().optional(),
 });
 
@@ -31,7 +39,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       orderBy: { createdAt: 'asc' },
     });
 
-    return apiResponse(users);
+    const parsed = users.map((u: any) => ({
+      ...u,
+      platforms: u.platforms ? JSON.parse(u.platforms) : [],
+    }));
+
+    return apiResponse(parsed);
   } catch (e: any) {
     return apiError(e.message, 500);
   }
@@ -51,9 +64,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const body = await req.json();
     const data = userSchema.parse(body);
 
+    const { platforms, ...rest } = data;
     const user = await db.clientUser.create({
       data: {
-        ...data,
+        ...rest,
+        platforms: platforms ? JSON.stringify(platforms) : null,
         clientId:  params.id,
         companyId: client.companyId,
       },
