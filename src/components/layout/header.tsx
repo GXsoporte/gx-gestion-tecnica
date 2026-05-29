@@ -5,7 +5,6 @@ import { useSession, signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import {
-  Bell,
   Search,
   Moon,
   Sun,
@@ -18,6 +17,7 @@ import {
 } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 import { GlobalSearch } from '@/components/ui/global-search';
+import { NotificationPanel } from '@/components/layout/notification-panel';
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
@@ -93,10 +93,7 @@ export function Header({ onMobileMenuToggle, mobileMenuOpen }: HeaderProps) {
         </button>
 
         {/* Notifications */}
-        <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
-          <Bell className="w-4 h-4 text-muted-foreground" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
-        </button>
+        <NotificationPanel />
 
         {/* User menu */}
         <div className="relative">
