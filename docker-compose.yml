@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: inco_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: inco_user
+      POSTGRES_PASSWORD: inco_secure_password_2024
+      POSTGRES_DB: inco_gestion
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inco_user -d inco_gestion"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # App Next.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inco_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://inco_user:inco_secure_password_2024@postgres:5432/inco_gestion?schema=public
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./public/uploads:/app/public/uploads
+
+  # Redis (cache y sesiones)
+  redis:
+    image: redis:7-alpine
+    container_name: inco_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

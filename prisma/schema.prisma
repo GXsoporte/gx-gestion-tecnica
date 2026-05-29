@@ -1,0 +1,702 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  nit         String?
+  logo        String?
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  country     String   @default("Colombia")
+  plan        String   @default("BASIC")
+  isActive    Boolean  @default(true)
+  settings    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users         User[]
+  clients       Client[]
+  tickets       Ticket[]
+  activities    Activity[]
+  assets        Asset[]
+  maintenances  Maintenance[]
+  documents     Document[]
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  invoices      Invoice[]
+  subscription  Subscription?
+  vendorLinks   CompanyVendor[]
+  diagnoses     Diagnosis[]
+  solutions     Solution[]
+  services      Service[]
+  subservices   Subservice[]
+
+  @@map("companies")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  role          String    @default("TECHNICIAN")
+  isActive      Boolean   @default(true)
+  phone         String?
+  position      String?
+  department    String?
+  lastLogin     DateTime?
+  companyId     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  company           Company?       @relation(fields: [companyId], references: [id])
+  accounts          Account[]
+  sessions          Session[]
+  assignedTickets   Ticket[]       @relation("AssignedTechnician")
+  createdTickets    Ticket[]       @relation("TicketCreator")
+  activities        Activity[]     @relation("TechnicianActivities")
+  createdActivities Activity[]     @relation("ActivityCreator")
+  maintenances      Maintenance[]
+  auditLogs         AuditLog[]
+  notifications     Notification[] @relation("NotificationRecipient")
+  sentNotifications Notification[] @relation("NotificationSender")
+  comments          Comment[]
+  diagnoses         AIDiagnosis[]
+  timeEntries       TimeEntry[]
+  createdInvoices   Invoice[]      @relation("InvoiceCreator")
+  vendor            Vendor?
+  formalDiagnoses   Diagnosis[]    @relation("DiagnosisTechnician")
+  solutions         Solution[]     @relation("SolutionTechnician")
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Client {
+  id           String  @id @default(cuid())
+  code         String  @unique
+  companyName  String
+  nit          String?
+  contactName  String
+  email        String
+  phone        String?
+  address      String?
+  city         String?
+  country      String  @default("Colombia")
+  status       String  @default("ACTIVE")
+  observations String?
+  companyId    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company      Company         @relation(fields: [companyId], references: [id])
+  tickets      Ticket[]
+  activities   Activity[]
+  assets       Asset[]
+  maintenances Maintenance[]
+  contacts     ClientContact[]
+  invoices     Invoice[]
+  diagnoses    Diagnosis[]
+  solutions    Solution[]
+
+  @@map("clients")
+}
+
+model ClientContact {
+  id        String  @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  position  String?
+  isPrimary Boolean @default(false)
+  clientId  String
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("client_contacts")
+}
+
+model Ticket {
+  id                String    @id @default(cuid())
+  ticketNumber      String    @unique
+  subject           String
+  description       String
+  type              String
+  priority          String    @default("MEDIUM")
+  status            String    @default("OPEN")
+  requesterName     String
+  requesterEmail    String?
+  requesterPhone    String?
+  requesterPosition String?
+  resolution        String?
+  clientId          String
+  assignedToId      String?
+  createdById       String
+  companyId         String
+  relatedAssetId    String?
+  closedAt          DateTime?
+  dueDate           DateTime?
+  slaBreached       Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  client       Client       @relation(fields: [clientId], references: [id])
+  assignedTo   User?        @relation("AssignedTechnician", fields: [assignedToId], references: [id])
+  createdBy    User         @relation("TicketCreator", fields: [createdById], references: [id])
+  company      Company      @relation(fields: [companyId], references: [id])
+  relatedAsset Asset?       @relation(fields: [relatedAssetId], references: [id])
+  comments     Comment[]
+  attachments  Attachment[]
+  activities   Activity[]
+  timeEntries  TimeEntry[]
+  diagnoses    Diagnosis[]
+  solutions    Solution[]
+
+  @@map("tickets")
+}
+
+model Activity {
+  id             String    @id @default(cuid())
+  activityNumber String    @unique
+  description    String
+  diagnosis      String?
+  solution       String?
+  priority       String    @default("MEDIUM")
+  status         String    @default("PENDING")
+  startTime      DateTime?
+  endTime        DateTime?
+  totalMinutes   Int?
+  signatureUrl   String?
+  clientId       String
+  technicianId   String
+  createdById    String
+  companyId      String
+  ticketId       String?
+  assetId        String?
+  maintenanceId  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  client       Client        @relation(fields: [clientId], references: [id])
+  technician   User          @relation("TechnicianActivities", fields: [technicianId], references: [id])
+  createdBy    User          @relation("ActivityCreator", fields: [createdById], references: [id])
+  company      Company       @relation(fields: [companyId], references: [id])
+  ticket       Ticket?       @relation(fields: [ticketId], references: [id])
+  asset        Asset?        @relation(fields: [assetId], references: [id])
+  maintenance  Maintenance?  @relation(fields: [maintenanceId], references: [id])
+  attachments  Attachment[]
+  timeEntries  TimeEntry[]
+  diagnosis_ai AIDiagnosis[]
+
+  @@map("activities")
+}
+
+model Asset {
+  id              String    @id @default(cuid())
+  assetNumber     String    @unique
+  type            String
+  brand           String?
+  model           String?
+  serial          String?
+  assignedUser    String?
+  area            String?
+  location        String?
+  status          String    @default("ACTIVE")
+  processor       String?
+  ram             String?
+  storage         String?
+  operatingSystem String?
+  softwareList    String?
+  purchaseDate    DateTime?
+  warrantyExpiry  DateTime?
+  purchasePrice   Float?
+  observations    String?
+  qrCode          String?
+  clientId        String
+  companyId       String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  client          Client        @relation(fields: [clientId], references: [id])
+  company         Company       @relation(fields: [companyId], references: [id])
+  tickets         Ticket[]
+  activities      Activity[]
+  maintenances    Maintenance[]
+  attachments     Attachment[]
+  diagnoses       AIDiagnosis[]
+  formalDiagnoses Diagnosis[]
+  solutions       Solution[]
+
+  @@map("assets")
+}
+
+model Maintenance {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  type          String
+  status        String    @default("SCHEDULED")
+  scheduledDate DateTime
+  completedDate DateTime?
+  nextDate      DateTime?
+  duration      Int?
+  notes         String?
+  clientId      String
+  assetId       String?
+  technicianId  String
+  companyId     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  client      Client       @relation(fields: [clientId], references: [id])
+  asset       Asset?       @relation(fields: [assetId], references: [id])
+  technician  User         @relation(fields: [technicianId], references: [id])
+  company     Company      @relation(fields: [companyId], references: [id])
+  attachments Attachment[]
+  activities  Activity[]
+
+  @@map("maintenances")
+}
+
+model AIDiagnosis {
+  id                String   @id @default(cuid())
+  input             String
+  diagnosis         String
+  causes            String
+  recommendations   String
+  suggestedSolution String
+  criticality       String
+  model             String   @default("gpt-4o")
+  tokens            Int?
+  activityId        String?
+  assetId           String?
+  userId            String
+  createdAt         DateTime @default(now())
+
+  activity Activity? @relation(fields: [activityId], references: [id])
+  asset    Asset?    @relation(fields: [assetId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+
+  @@map("ai_diagnoses")
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  isInternal Boolean  @default(false)
+  ticketId   String?
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  ticket Ticket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id])
+
+  @@map("comments")
+}
+
+model Attachment {
+  id            String   @id @default(cuid())
+  name          String
+  originalName  String
+  url           String
+  size          Int
+  mimeType      String
+  ticketId      String?
+  activityId    String?
+  assetId       String?
+  maintenanceId String?
+  documentId    String?
+  diagnosisId   String?
+  solutionId    String?
+  createdAt     DateTime @default(now())
+
+  ticket      Ticket?      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  activity    Activity?    @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  asset       Asset?       @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  maintenance Maintenance? @relation(fields: [maintenanceId], references: [id], onDelete: Cascade)
+  document    Document?    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  diagnosis   Diagnosis?   @relation(fields: [diagnosisId], references: [id], onDelete: Cascade)
+  solution    Solution?    @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String?
+  isPublic    Boolean  @default(false)
+  companyId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company      @relation(fields: [companyId], references: [id])
+  attachments Attachment[]
+
+  @@map("documents")
+}
+
+model TimeEntry {
+  id          String   @id @default(cuid())
+  description String?
+  minutes     Int
+  date        DateTime @default(now())
+  userId      String
+  ticketId    String?
+  activityId  String?
+  createdAt   DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id])
+  ticket   Ticket?   @relation(fields: [ticketId], references: [id])
+  activity Activity? @relation(fields: [activityId], references: [id])
+
+  @@map("time_entries")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  title       String
+  message     String
+  type        String   @default("INFO")
+  isRead      Boolean  @default(false)
+  link        String?
+  recipientId String
+  senderId    String?
+  companyId   String
+  createdAt   DateTime @default(now())
+
+  recipient User    @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender    User?   @relation("NotificationSender", fields: [senderId], references: [id])
+  company   Company @relation(fields: [companyId], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  oldValues String?
+  newValues String?
+  ipAddress String?
+  userAgent String?
+  userId    String?
+  companyId String
+  createdAt DateTime @default(now())
+
+  user    User?   @relation(fields: [userId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  status        String   @default("DRAFT")
+  clientId      String
+  companyId     String
+  createdById   String
+  issueDate     DateTime @default(now())
+  dueDate       DateTime
+  subtotal      Float    @default(0)
+  taxRate       Float    @default(0)
+  taxAmount     Float    @default(0)
+  total         Float    @default(0)
+  currency      String   @default("COP")
+  notes         String?
+  terms         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  client    Client        @relation(fields: [clientId], references: [id])
+  company   Company       @relation(fields: [companyId], references: [id])
+  createdBy User          @relation("InvoiceCreator", fields: [createdById], references: [id])
+  items     InvoiceItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id           String  @id @default(cuid())
+  invoiceId    String
+  description  String
+  quantity     Float   @default(1)
+  unitPrice    Float   @default(0)
+  total        Float   @default(0)
+  serviceId    String?
+  subserviceId String?
+
+  invoice    Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  service    Service?    @relation(fields: [serviceId], references: [id])
+  subservice Subservice? @relation(fields: [subserviceId], references: [id])
+
+  @@map("invoice_items")
+}
+
+// ─── PLANES Y SUSCRIPCIONES ──────────────────────────────────────────────────
+
+model Plan {
+  id          String  @id @default(cuid())
+  code        String  @unique  // DEMO, BASIC, PROFESSIONAL, ENTERPRISE
+  name        String
+  description String?
+  price       Float   @default(0)
+  currency    String  @default("COP")
+  maxUsers    Int     @default(3)
+  maxClients  Int     @default(10)
+  maxTickets  Int?    // null = ilimitado
+  maxStorageGb Int    @default(1)
+  durationDays Int?   // solo para DEMO
+  isActive    Boolean @default(true)
+
+  // Feature flags
+  hasInventory      Boolean @default(true)
+  hasTickets        Boolean @default(true)
+  hasActivities     Boolean @default(true)
+  hasManualDiagnosis Boolean @default(true)
+  hasAIDiagnosis    Boolean @default(false)
+  hasInvoicing      Boolean @default(false)
+  hasServices       Boolean @default(false)
+  hasDocuments      Boolean @default(false)
+  hasAdvancedKPIs   Boolean @default(false)
+  hasPDFExport      Boolean @default(true)
+  hasAutoEmails     Boolean @default(false)
+  hasBrandCustom    Boolean @default(false)
+  hasAuditLog       Boolean @default(false)
+  hasMaintenances   Boolean @default(false)
+  hasCoordinator    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id          String    @id @default(cuid())
+  companyId   String    @unique
+  planId      String
+  status      String    @default("ACTIVE") // DEMO, ACTIVE, SUSPENDED, EXPIRED, CANCELLED
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  renewDate   DateTime?
+  trialDays   Int?
+  notes       String?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id])
+  plan    Plan    @relation(fields: [planId], references: [id])
+
+  @@map("subscriptions")
+}
+
+// ─── VENDEDORES ──────────────────────────────────────────────────────────────
+
+model Vendor {
+  id           String  @id @default(cuid())
+  vendorNumber String  @unique
+  userId       String  @unique
+  commission   Float   @default(0)
+  isActive     Boolean @default(true)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user            User            @relation(fields: [userId], references: [id])
+  assignedCompanies CompanyVendor[]
+
+  @@map("vendors")
+}
+
+model CompanyVendor {
+  id         String   @id @default(cuid())
+  companyId  String
+  vendorId   String
+  assignedAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id])
+  vendor  Vendor  @relation(fields: [vendorId], references: [id])
+
+  @@unique([companyId, vendorId])
+  @@map("company_vendors")
+}
+
+// ─── DIAGNÓSTICO FORMAL ──────────────────────────────────────────────────────
+
+model Diagnosis {
+  id              String    @id @default(cuid())
+  diagnosisNumber String    @unique
+  ticketId        String
+  assetId         String
+  clientId        String
+  technicianId    String
+  companyId       String
+
+  description     String
+  problemCause    String?
+  recommendation  String?
+  requiresRepair  Boolean   @default(true)
+  estimatedCost   Float?
+  estimatedTime   String?
+  status          String    @default("DRAFT")
+  // DRAFT → SENT → APPROVED / REJECTED / INFO_REQUESTED
+
+  // IA vinculada
+  aiDiagnosisId   String?
+  technicianNotes String?
+
+  sentAt     DateTime?
+  approvedAt DateTime?
+  rejectedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  ticket     Ticket      @relation(fields: [ticketId], references: [id])
+  asset      Asset       @relation(fields: [assetId], references: [id])
+  client     Client      @relation(fields: [clientId], references: [id])
+  technician User        @relation("DiagnosisTechnician", fields: [technicianId], references: [id])
+  company    Company     @relation(fields: [companyId], references: [id])
+  solutions  Solution[]
+  attachments Attachment[]
+
+  @@map("diagnoses")
+}
+
+// ─── SOLUCIÓN / REPARACIÓN ───────────────────────────────────────────────────
+
+model Solution {
+  id             String    @id @default(cuid())
+  solutionNumber String    @unique
+  ticketId       String
+  diagnosisId    String
+  assetId        String
+  clientId       String
+  technicianId   String
+  companyId      String
+
+  startDate         DateTime?
+  endDate           DateTime?
+  activitiesDone    String?
+  spareParts        String?
+  installedSoftware String?
+  configurations    String?
+  testsDone         String?
+  finalResult       String?
+  recommendations   String?
+  status            String    @default("IN_PROGRESS")
+  // IN_PROGRESS → COMPLETED → CANCELLED
+  deliveryStatus    String    @default("PENDING")
+  // PENDING → DELIVERED
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket      Ticket      @relation(fields: [ticketId], references: [id])
+  diagnosis   Diagnosis   @relation(fields: [diagnosisId], references: [id])
+  asset       Asset       @relation(fields: [assetId], references: [id])
+  client      Client      @relation(fields: [clientId], references: [id])
+  technician  User        @relation("SolutionTechnician", fields: [technicianId], references: [id])
+  company     Company     @relation(fields: [companyId], references: [id])
+  attachments Attachment[]
+
+  @@map("solutions")
+}
+
+// ─── SERVICIOS Y SUBSERVICIOS ────────────────────────────────────────────────
+
+model Service {
+  id            String   @id @default(cuid())
+  serviceNumber String   @unique
+  name          String
+  description   String?
+  basePrice     Float    @default(0)
+  isActive      Boolean  @default(true)
+  companyId     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company     Company      @relation(fields: [companyId], references: [id])
+  subservices Subservice[]
+  invoiceItems InvoiceItem[]
+
+  @@map("services")
+}
+
+model Subservice {
+  id               String   @id @default(cuid())
+  subserviceNumber String   @unique
+  serviceId        String
+  name             String
+  description      String?
+  price            Float    @default(0)
+  isActive         Boolean  @default(true)
+  companyId        String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  service      Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  company      Company       @relation(fields: [companyId], references: [id])
+  invoiceItems InvoiceItem[]
+
+  @@map("subservices")
+}
