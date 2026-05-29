@@ -126,7 +126,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
               <label className="form-label mb-1.5 block">Tipo de ticket *</label>
               <select
                 {...register('type')}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="">Seleccionar tipo...</option>
                 {Object.entries(TICKET_TYPE_LABELS).map(([key, label]) => (
@@ -140,7 +140,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
               <label className="form-label mb-1.5 block">Prioridad *</label>
               <select
                 {...register('priority')}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
                   <option key={key} value={key}>{label}</option>
@@ -154,7 +154,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
             <input
               {...register('subject')}
               placeholder="Descripción breve del problema..."
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
             {errors.subject && <p className="text-destructive text-xs mt-1">{errors.subject.message}</p>}
           </div>
@@ -165,7 +165,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
               {...register('description')}
               rows={4}
               placeholder="Describe el problema con el mayor detalle posible..."
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
             />
             {errors.description && <p className="text-destructive text-xs mt-1">{errors.description.message}</p>}
           </div>
@@ -175,7 +175,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
               <label className="form-label mb-1.5 block">Cliente *</label>
               <select
                 {...register('clientId')}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="">Seleccionar cliente...</option>
                 {clients.map((c: any) => (
@@ -189,7 +189,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
               <label className="form-label mb-1.5 block">Técnico asignado</label>
               <select
                 {...register('assignedToId')}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="">Sin asignar</option>
                 {technicians.map((t: any) => (
@@ -207,7 +207,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
                 <input
                   {...register('requesterName')}
                   placeholder="Nombre completo"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
                 {errors.requesterName && <p className="text-destructive text-xs mt-1">{errors.requesterName.message}</p>}
               </div>
@@ -216,7 +216,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
                 <input
                   {...register('requesterPosition')}
                   placeholder="Cargo en la empresa"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
               <div>
@@ -225,7 +225,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
                   {...register('requesterEmail')}
                   type="email"
                   placeholder="correo@empresa.com"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
               <div>
@@ -233,7 +233,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
                 <input
                   {...register('requesterPhone')}
                   placeholder="+57 300 000 0000"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
             </div>

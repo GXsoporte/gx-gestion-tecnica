@@ -105,7 +105,7 @@ export function ActividadModal({ onClose, onSuccess }: ActividadModalProps) {
               {...register('description')}
               rows={3}
               placeholder="Describe la actividad técnica a realizar..."
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
             />
             {errors.description && <p className="text-destructive text-xs mt-1">{errors.description.message}</p>}
           </div>
@@ -113,7 +113,7 @@ export function ActividadModal({ onClose, onSuccess }: ActividadModalProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label mb-1.5 block">Prioridad</label>
-              <select {...register('priority')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <select {...register('priority')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20">
                 {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
                 ))}
@@ -121,7 +121,7 @@ export function ActividadModal({ onClose, onSuccess }: ActividadModalProps) {
             </div>
             <div>
               <label className="form-label mb-1.5 block">Cliente *</label>
-              <select {...register('clientId')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <select {...register('clientId')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <option value="">Seleccionar...</option>
                 {clients.map((c: any) => (
                   <option key={c.id} value={c.id}>{c.companyName}</option>
@@ -131,7 +131,7 @@ export function ActividadModal({ onClose, onSuccess }: ActividadModalProps) {
             </div>
             <div>
               <label className="form-label mb-1.5 block">Técnico *</label>
-              <select {...register('technicianId')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <select {...register('technicianId')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <option value="">Seleccionar técnico...</option>
                 {technicians.map((t: any) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -141,22 +141,22 @@ export function ActividadModal({ onClose, onSuccess }: ActividadModalProps) {
             </div>
             <div>
               <label className="form-label mb-1.5 block">Hora inicio</label>
-              <input type="datetime-local" {...register('startTime')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              <input type="datetime-local" {...register('startTime')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </div>
             <div>
               <label className="form-label mb-1.5 block">Hora fin</label>
-              <input type="datetime-local" {...register('endTime')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              <input type="datetime-local" {...register('endTime')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
 
           <div>
             <label className="form-label mb-1.5 block">Diagnóstico técnico</label>
-            <textarea {...register('diagnosis')} rows={3} placeholder="Diagnóstico del problema detectado..." className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+            <textarea {...register('diagnosis')} rows={3} placeholder="Diagnóstico del problema detectado..." className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
           </div>
 
           <div>
             <label className="form-label mb-1.5 block">Solución aplicada</label>
-            <textarea {...register('solution')} rows={3} placeholder="Descripción de la solución implementada..." className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+            <textarea {...register('solution')} rows={3} placeholder="Descripción de la solución implementada..." className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
           </div>
 
           {/* Adjuntos */}

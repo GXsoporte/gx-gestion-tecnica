@@ -229,7 +229,7 @@ export function TicketsClient() {
           <select
             value={filters.status}
             onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            className="border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            className="border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           >
             <option value="">Todos los estados</option>
             {Object.entries(TICKET_STATUS_LABELS).map(([key, label]) => (
@@ -239,7 +239,7 @@ export function TicketsClient() {
           <select
             value={filters.priority}
             onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
-            className="border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            className="border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           >
             <option value="">Todas las prioridades</option>
             {Object.entries(PRIORITY_LABELS).map(([key, label]) => (

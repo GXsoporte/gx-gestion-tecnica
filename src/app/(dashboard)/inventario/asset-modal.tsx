@@ -9,8 +9,8 @@ import { useQuery } from '@tanstack/react-query';
 import { X, Loader2 } from 'lucide-react';
 import { ASSET_TYPE_LABELS } from '@/lib/utils';
 
-const SELECT_CLASS = 'w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer';
-const INPUT_CLASS  = 'w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20';
+const SELECT_CLASS = 'w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20';
+const INPUT_CLASS  = 'w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20';
 
 const BRANDS = [
   'Dell','HP','Lenovo','ASUS','Acer','Apple','Samsung','MSI',

@@ -100,13 +100,13 @@ export function MantenimientoModal({ onClose, onSuccess }: { onClose: () => void
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div>
             <label className="form-label mb-1.5 block">Título *</label>
-            <input {...register('title')} placeholder="Mantenimiento preventivo mensual" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            <input {...register('title')} placeholder="Mantenimiento preventivo mensual" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
             {errors.title && <p className="text-destructive text-xs mt-1">{errors.title.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label mb-1.5 block">Tipo *</label>
-              <select {...register('type')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none">
+              <select {...register('type')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none">
                 <option value="PREVENTIVE">Preventivo</option>
                 <option value="CORRECTIVE">Correctivo</option>
                 <option value="PREDICTIVE">Predictivo</option>
@@ -114,12 +114,12 @@ export function MantenimientoModal({ onClose, onSuccess }: { onClose: () => void
             </div>
             <div>
               <label className="form-label mb-1.5 block">Fecha programada *</label>
-              <input type="datetime-local" {...register('scheduledDate')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none" />
+              <input type="datetime-local" {...register('scheduledDate')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none" />
               {errors.scheduledDate && <p className="text-destructive text-xs mt-1">{errors.scheduledDate.message}</p>}
             </div>
             <div>
               <label className="form-label mb-1.5 block">Cliente *</label>
-              <select {...register('clientId')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none">
+              <select {...register('clientId')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none">
                 <option value="">Seleccionar...</option>
                 {clients.map((c: any) => <option key={c.id} value={c.id}>{c.companyName}</option>)}
               </select>
@@ -127,14 +127,14 @@ export function MantenimientoModal({ onClose, onSuccess }: { onClose: () => void
             </div>
             <div>
               <label className="form-label mb-1.5 block">Equipo</label>
-              <select {...register('assetId')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none" disabled={!selectedClientId}>
+              <select {...register('assetId')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none" disabled={!selectedClientId}>
                 <option value="">General (sin equipo)</option>
                 {assets.map((a: any) => <option key={a.id} value={a.id}>{a.brand} {a.model}</option>)}
               </select>
             </div>
             <div className="col-span-2">
               <label className="form-label mb-1.5 block">Técnico *</label>
-              <select {...register('technicianId')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none">
+              <select {...register('technicianId')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none">
                 <option value="">Seleccionar técnico...</option>
                 {technicians.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
@@ -143,7 +143,7 @@ export function MantenimientoModal({ onClose, onSuccess }: { onClose: () => void
           </div>
           <div>
             <label className="form-label mb-1.5 block">Descripción</label>
-            <textarea {...register('description')} rows={3} placeholder="Describe el mantenimiento a realizar..." className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none resize-none" />
+            <textarea {...register('description')} rows={3} placeholder="Describe el mantenimiento a realizar..." className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none resize-none" />
           </div>
           {/* Adjuntos */}
           <div className="border-t border-border pt-4">

@@ -139,7 +139,7 @@ export function FacturaModal({
               <label className="form-label mb-1.5 block">Cliente *</label>
               <select
                 {...register('clientId')}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">Seleccionar cliente...</option>
                 {clients.map((c: any) => (
@@ -152,7 +152,7 @@ export function FacturaModal({
               <label className="form-label mb-1.5 block">Moneda</label>
               <select
                 {...register('currency')}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="COP">COP — Peso colombiano</option>
                 <option value="USD">USD — Dólar</option>
@@ -172,7 +172,7 @@ export function FacturaModal({
                 max="100"
                 {...register('taxRate')}
                 placeholder="19"
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
             <div>
@@ -180,7 +180,7 @@ export function FacturaModal({
               <input
                 type="date"
                 {...register('dueDate')}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               {errors.dueDate && <p className="text-destructive text-xs mt-1">{errors.dueDate.message}</p>}
             </div>
@@ -289,7 +289,7 @@ export function FacturaModal({
               {...register('notes')}
               rows={2}
               placeholder="Notas adicionales para el cliente..."
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
             />
           </div>
 
@@ -299,7 +299,7 @@ export function FacturaModal({
               {...register('terms')}
               rows={2}
               placeholder="Condiciones de pago, políticas, etc..."
-              className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+              className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
             />
           </div>
 

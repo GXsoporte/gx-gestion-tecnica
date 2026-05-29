@@ -46,23 +46,23 @@ export function UserModal({ onClose, onSuccess }: { onClose: () => void; onSucce
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div>
             <label className="form-label mb-1.5 block">Nombre completo *</label>
-            <input {...register('name')} placeholder="Juan García" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            <input {...register('name')} placeholder="Juan García" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
             {errors.name && <p className="text-destructive text-xs mt-1">{errors.name.message}</p>}
           </div>
           <div>
             <label className="form-label mb-1.5 block">Email *</label>
-            <input {...register('email')} type="email" placeholder="usuario@empresa.com" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            <input {...register('email')} type="email" placeholder="usuario@empresa.com" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
             {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
           </div>
           <div>
             <label className="form-label mb-1.5 block">Contraseña *</label>
-            <input {...register('password')} type="password" placeholder="Mínimo 8 caracteres" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            <input {...register('password')} type="password" placeholder="Mínimo 8 caracteres" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
             {errors.password && <p className="text-destructive text-xs mt-1">{errors.password.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label mb-1.5 block">Rol *</label>
-              <select {...register('role')} className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none">
+              <select {...register('role')} className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none">
                 <option value="TECHNICIAN">Técnico</option>
                 <option value="COORDINATOR">Coordinador</option>
                 <option value="COMPANY_ADMIN">Administrador</option>
@@ -71,11 +71,11 @@ export function UserModal({ onClose, onSuccess }: { onClose: () => void; onSucce
             </div>
             <div>
               <label className="form-label mb-1.5 block">Teléfono</label>
-              <input {...register('phone')} placeholder="+57 300 000 0000" className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none" />
+              <input {...register('phone')} placeholder="+57 300 000 0000" className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none" />
             </div>
             <div className="col-span-2">
               <label className="form-label mb-1.5 block">Cargo</label>
-              <input {...register('position')} placeholder="Técnico Senior, Coordinador..." className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none" />
+              <input {...register('position')} placeholder="Técnico Senior, Coordinador..." className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none" />
             </div>
           </div>
           <div className="flex gap-3 pt-2">

@@ -75,7 +75,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
               <input
                 {...register('companyName')}
                 placeholder="Empresa S.A.S."
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
               {errors.companyName && <p className="text-destructive text-xs mt-1">{errors.companyName.message}</p>}
             </div>
@@ -85,7 +85,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
               <input
                 {...register('nit')}
                 placeholder="900.123.456-7"
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
 
@@ -93,7 +93,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
               <label className="form-label mb-1.5 block">Estado</label>
               <select
                 {...register('status')}
-                className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="ACTIVE">Activo</option>
                 <option value="INACTIVE">Inactivo</option>
@@ -110,7 +110,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
                 <input
                   {...register('contactName')}
                   placeholder="Juan Pérez"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
                 {errors.contactName && <p className="text-destructive text-xs mt-1">{errors.contactName.message}</p>}
               </div>
@@ -121,7 +121,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
                   {...register('email')}
                   type="email"
                   placeholder="contacto@empresa.com"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
                 {errors.email && <p className="text-destructive text-xs mt-1">{errors.email.message}</p>}
               </div>
@@ -131,7 +131,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
                 <input
                   {...register('phone')}
                   placeholder="+57 300 000 0000"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
 
@@ -140,7 +140,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
                 <input
                   {...register('city')}
                   placeholder="Bogotá"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
 
@@ -149,7 +149,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
                 <input
                   {...register('address')}
                   placeholder="Calle 72 #10-20"
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
 
@@ -159,7 +159,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
                   {...register('observations')}
                   rows={3}
                   placeholder="Notas adicionales sobre el cliente..."
-                  className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                  className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                 />
               </div>
             </div>

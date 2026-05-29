@@ -253,7 +253,7 @@ export function InventarioClient() {
           <select
             value={filters.status}
             onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            className="border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none"
+            className="border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none"
           >
             <option value="">Todos los estados</option>
             {Object.entries(ASSET_STATUS_LABELS).map(([k, v]) => (
@@ -263,7 +263,7 @@ export function InventarioClient() {
           <select
             value={filters.type}
             onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}
-            className="border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none"
+            className="border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none"
           >
             <option value="">Todos los tipos</option>
             {Object.entries(ASSET_TYPE_LABELS).map(([k, v]) => (
