@@ -110,8 +110,8 @@ export async function POST(req: NextRequest) {
       requesterName: data.requesterName,
       requesterEmail: data.requesterEmail,
       requesterPhone: data.requesterPhone,
-      clientName: ticket.client?.companyName,
-      companyName: session.user.companyName,
+      clientName: ticket.client?.companyName ?? undefined,
+      companyName: session.user.companyName ?? undefined,
     }).catch((err) => console.error('[tickets] Error en notificación:', err));
 
     return apiResponse(ticket, 201);

@@ -1,5 +1,12 @@
-import { UserRole } from '@prisma/client';
 import 'next-auth';
+
+export type UserRole =
+  | 'SUPER_ADMIN'
+  | 'COMPANY_ADMIN'
+  | 'COORDINATOR'
+  | 'TECHNICIAN'
+  | 'CLIENT'
+  | 'VENDOR';
 
 declare module 'next-auth' {
   interface User {

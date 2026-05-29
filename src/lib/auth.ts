@@ -3,7 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db';
-import { UserRole } from '@prisma/client';
+import type { UserRole } from '@/types/next-auth';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -48,10 +48,10 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           image: user.image,
-          role: user.role,
+          role: user.role as UserRole,
           companyId: user.companyId,
-          companyName: user.company?.name,
-          companySlug: user.company?.slug,
+          companyName: user.company?.name ?? null,
+          companySlug: user.company?.slug ?? null,
         };
       },
     }),

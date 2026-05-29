@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         ...data,
         diagnosisNumber,
         companyId,
-        technicianId: session.user.role === 'TECHNICIAN' ? session.user.id : data.technicianId ?? session.user.id,
+        technicianId: session.user.id,
         status: 'DRAFT',
       },
       include: {
