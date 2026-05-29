@@ -16,6 +16,7 @@ import {
   Wifi,
   HardDrive,
   Trash2,
+  Pencil,
   X,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
@@ -150,14 +151,21 @@ export function InventarioClient() {
       key: 'actions',
       header: '',
       cell: (row: any) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Link
             href={`/inventario/${row.id}`}
-            className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium"
+            className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium px-1.5 py-1"
           >
             <Eye className="w-3.5 h-3.5" />
             Ver
           </Link>
+          <button
+            onClick={() => { setSelectedAsset(row); setShowModal(true); }}
+            className="p-1.5 hover:bg-blue-50 hover:text-blue-600 rounded transition-colors text-muted-foreground"
+            title="Editar"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
           {confirmDeleteId === row.id ? (
             <div className="flex items-center gap-1">
               <button
@@ -174,7 +182,8 @@ export function InventarioClient() {
           ) : (
             <button
               onClick={() => setConfirmDeleteId(row.id)}
-              className="p-1 hover:bg-red-50 hover:text-red-600 rounded transition-colors text-muted-foreground"
+              className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded transition-colors text-muted-foreground"
+              title="Eliminar"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>

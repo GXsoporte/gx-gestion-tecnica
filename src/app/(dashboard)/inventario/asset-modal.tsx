@@ -37,6 +37,11 @@ interface AssetModalProps {
   onSuccess: () => void;
 }
 
+function toDateInput(val: string | null | undefined): string {
+  if (!val) return '';
+  return val.substring(0, 10); // "2024-01-15T00:00:00.000Z" → "2024-01-15"
+}
+
 export function AssetModal({ asset, onClose, onSuccess }: AssetModalProps) {
   const isEdit = !!asset;
 
@@ -48,13 +53,21 @@ export function AssetModal({ asset, onClose, onSuccess }: AssetModalProps) {
     },
   });
 
+  const defaultValues = asset
+    ? {
+        ...asset,
+        purchaseDate: toDateInput(asset.purchaseDate),
+        warrantyExpiry: toDateInput(asset.warrantyExpiry),
+      }
+    : { status: 'ACTIVE' };
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: asset || { status: 'ACTIVE' },
+    defaultValues,
   });
 
   const onSubmit = async (data: FormData) => {
