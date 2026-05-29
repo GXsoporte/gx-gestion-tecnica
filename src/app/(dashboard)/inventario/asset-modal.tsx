@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -64,11 +65,20 @@ export function AssetModal({ asset, onClose, onSuccess }: AssetModalProps) {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues,
   });
+
+  // El select de clientes carga async: una vez disponibles, sincronizamos
+  // el valor en el DOM para que react-hook-form lo lea correctamente.
+  useEffect(() => {
+    if (isEdit && clients.length > 0 && asset?.clientId) {
+      setValue('clientId', asset.clientId, { shouldValidate: false });
+    }
+  }, [clients.length]);
 
   const onSubmit = async (data: FormData) => {
     try {

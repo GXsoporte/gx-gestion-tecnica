@@ -70,11 +70,19 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: ticket || { priority: 'MEDIUM' },
   });
+
+  // Sincronizar clientId cuando carga la lista de clientes (edición)
+  useEffect(() => {
+    if (isEdit && clients.length > 0 && ticket?.clientId) {
+      setValue('clientId', ticket.clientId, { shouldValidate: false });
+    }
+  }, [clients.length]);
 
   const onSubmit = async (data: FormData) => {
     try {
