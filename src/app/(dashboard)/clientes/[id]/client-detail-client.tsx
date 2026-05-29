@@ -1,37 +1,42 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft,
-  Building2,
-  Mail,
-  Phone,
-  MapPin,
-  Ticket,
-  ClipboardList,
-  Monitor,
-  Loader2,
-  ExternalLink,
+  ArrowLeft, Building2, Mail, Phone, MapPin, Ticket, ClipboardList,
+  Monitor, Loader2, ExternalLink, Users, Plus, Pencil, Trash2, X,
+  Eye, EyeOff, User,
 } from 'lucide-react';
 import {
-  cn,
-  formatDate,
-  TICKET_STATUS_LABELS,
-  TICKET_STATUS_COLORS,
-  ACTIVITY_STATUS_LABELS,
-  ACTIVITY_STATUS_COLORS,
-  ASSET_STATUS_LABELS,
-  ASSET_STATUS_COLORS,
+  cn, formatDate,
+  TICKET_STATUS_LABELS, TICKET_STATUS_COLORS,
+  ASSET_STATUS_LABELS, ASSET_STATUS_COLORS,
   ASSET_TYPE_LABELS,
-  PRIORITY_LABELS,
-  PRIORITY_COLORS,
 } from '@/lib/utils';
+import { ClientUserModal } from '../client-user-modal';
+
+function MaskedField({ value }: { value?: string }) {
+  const [show, setShow] = useState(false);
+  if (!value) return <span className="text-xs text-muted-foreground">—</span>;
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-xs font-mono">{show ? value : '••••••••'}</span>
+      <button type="button" onClick={() => setShow(v => !v)} className="text-muted-foreground hover:text-foreground">
+        {show ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+      </button>
+    </div>
+  );
+}
 
 export function ClientDetailClient({ id }: { id: string }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [userModal, setUserModal] = useState<{ open: boolean; user?: any }>({ open: false });
+  const [confirmDeleteUserId, setConfirmDeleteUserId] = useState<string | null>(null);
 
   const { data: client, isLoading } = useQuery({
     queryKey: ['client', id],
@@ -40,6 +45,27 @@ export function ClientDetailClient({ id }: { id: string }) {
       return data.data;
     },
   });
+
+  const { data: clientUsers = [], refetch: refetchUsers } = useQuery({
+    queryKey: ['client-users', id],
+    queryFn: async () => {
+      const { data } = await axios.get(`/api/clientes/${id}/usuarios`);
+      return data.data ?? [];
+    },
+    enabled: !!client,
+  });
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      await axios.delete(`/api/clientes/${id}/usuarios/${userId}`);
+      toast.success('Usuario eliminado');
+      refetchUsers();
+    } catch {
+      toast.error('Error al eliminar usuario');
+    } finally {
+      setConfirmDeleteUserId(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -58,8 +84,11 @@ export function ClientDetailClient({ id }: { id: string }) {
           <ArrowLeft className="w-4 h-4 text-muted-foreground" />
         </button>
         <div>
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
             <span className="text-xs text-muted-foreground font-mono">{client.code}</span>
+            <span className={cn('badge', client.clientType === 'NATURAL' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200')}>
+              {client.clientType === 'NATURAL' ? <><User className="w-3 h-3 inline mr-1" />Persona Natural</> : <><Building2 className="w-3 h-3 inline mr-1" />Empresa</>}
+            </span>
             <span className={cn('badge', client.status === 'ACTIVE' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-600 border-slate-200')}>
               {client.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
             </span>
@@ -80,6 +109,15 @@ export function ClientDetailClient({ id }: { id: string }) {
                   <div>
                     <p className="text-xs text-muted-foreground">NIT</p>
                     <p className="text-sm font-medium">{client.nit}</p>
+                  </div>
+                </div>
+              )}
+              {client.cedula && (
+                <div className="flex items-start gap-3">
+                  <User className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Cédula</p>
+                    <p className="text-sm font-medium">{client.cedula}</p>
                   </div>
                 </div>
               )}
@@ -206,6 +244,133 @@ export function ClientDetailClient({ id }: { id: string }) {
           </div>
         </div>
       </div>
+
+      {/* ── Usuarios del cliente ───────────────────────────── */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-border shadow-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-primary" />
+            <h3 className="section-title">Usuarios del cliente</h3>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{clientUsers.length}</span>
+          </div>
+          <button
+            onClick={() => setUserModal({ open: true })}
+            className="flex items-center gap-1.5 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors font-medium"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Nuevo usuario
+          </button>
+        </div>
+
+        {clientUsers.length === 0 ? (
+          <div className="p-8 text-center">
+            <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-40" />
+            <p className="text-sm text-muted-foreground">No hay usuarios registrados</p>
+            <button
+              onClick={() => setUserModal({ open: true })}
+              className="mt-3 text-xs text-primary hover:underline"
+            >
+              Agregar primer usuario
+            </button>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {clientUsers.map((u: any) => (
+              <div key={u.id} className="px-6 py-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-primary">{u.name?.[0]?.toUpperCase()}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{u.name}</p>
+                      {u.notes && <p className="text-xs text-muted-foreground">{u.notes}</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => setUserModal({ open: true, user: u })}
+                      className="p-1.5 hover:bg-blue-50 hover:text-blue-600 rounded transition-colors text-muted-foreground"
+                      title="Editar"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    {confirmDeleteUserId === u.id ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleDeleteUser(u.id)} className="text-xs text-white bg-red-600 hover:bg-red-700 px-2 py-0.5 rounded font-medium">
+                          Confirmar
+                        </button>
+                        <button onClick={() => setConfirmDeleteUserId(null)} className="p-0.5 hover:bg-muted rounded">
+                          <X className="w-3 h-3 text-muted-foreground" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteUserId(u.id)}
+                        className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded transition-colors text-muted-foreground"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Credenciales */}
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {(u.pcUsername || u.pcPassword) && (
+                    <div className="bg-muted/40 rounded-lg p-2.5">
+                      <p className="text-[10px] font-semibold text-muted-foreground mb-1 flex items-center gap-1">
+                        <Monitor className="w-3 h-3" /> PC
+                      </p>
+                      {u.pcUsername && <p className="text-xs font-mono truncate">{u.pcUsername}</p>}
+                      <MaskedField value={u.pcPassword} />
+                    </div>
+                  )}
+                  {(u.adminUsername || u.adminPassword) && (
+                    <div className="bg-muted/40 rounded-lg p-2.5">
+                      <p className="text-[10px] font-semibold text-muted-foreground mb-1">🛡 Admin</p>
+                      {u.adminUsername && <p className="text-xs font-mono truncate">{u.adminUsername}</p>}
+                      <MaskedField value={u.adminPassword} />
+                    </div>
+                  )}
+                  {(u.email1 || u.email1Password) && (
+                    <div className="bg-muted/40 rounded-lg p-2.5">
+                      <p className="text-[10px] font-semibold text-muted-foreground mb-1">✉ Correo 1</p>
+                      {u.email1 && <p className="text-xs truncate">{u.email1}</p>}
+                      <MaskedField value={u.email1Password} />
+                    </div>
+                  )}
+                  {(u.email2 || u.email2Password) && (
+                    <div className="bg-muted/40 rounded-lg p-2.5">
+                      <p className="text-[10px] font-semibold text-muted-foreground mb-1">✉ Correo 2</p>
+                      {u.email2 && <p className="text-xs truncate">{u.email2}</p>}
+                      <MaskedField value={u.email2Password} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal usuario */}
+      {userModal.open && (
+        <ClientUserModal
+          clientId={id}
+          clientName={client.companyName}
+          clientType={client.clientType}
+          clientEmail={client.email}
+          user={userModal.user}
+          onClose={() => setUserModal({ open: false })}
+          onSuccess={() => {
+            setUserModal({ open: false });
+            refetchUsers();
+            toast.success(userModal.user ? 'Usuario actualizado' : 'Usuario creado correctamente');
+          }}
+        />
+      )}
     </div>
   );
 }

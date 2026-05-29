@@ -41,6 +41,7 @@ model Company {
   solutions     Solution[]
   services      Service[]
   subservices   Subservice[]
+  clientUsers   ClientUser[]
 
   @@map("companies")
 }
@@ -127,8 +128,10 @@ model VerificationToken {
 model Client {
   id           String  @id @default(cuid())
   code         String  @unique
+  clientType   String  @default("COMPANY")  // COMPANY | NATURAL
   companyName  String
   nit          String?
+  cedula       String?
   contactName  String
   email        String
   phone        String?
@@ -150,6 +153,7 @@ model Client {
   invoices     Invoice[]
   diagnoses    Diagnosis[]
   solutions    Solution[]
+  clientUsers  ClientUser[]
 
   @@map("clients")
 }
@@ -166,6 +170,29 @@ model ClientContact {
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@map("client_contacts")
+}
+
+model ClientUser {
+  id             String   @id @default(cuid())
+  clientId       String
+  companyId      String
+  name           String
+  pcUsername     String?
+  pcPassword     String?
+  adminUsername  String?
+  adminPassword  String?
+  email1         String?
+  email1Password String?
+  email2         String?
+  email2Password String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@map("client_users")
 }
 
 model Ticket {

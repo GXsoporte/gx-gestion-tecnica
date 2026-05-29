@@ -4,14 +4,16 @@ import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit } from '
 import { z } from 'zod';
 
 const updateSchema = z.object({
+  clientType:  z.enum(['COMPANY', 'NATURAL']).optional(),
   companyName: z.string().optional(),
-  nit: z.string().optional(),
+  nit:         z.string().optional(),
+  cedula:      z.string().optional(),
   contactName: z.string().optional(),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']).optional(),
+  email:       z.string().email().optional(),
+  phone:       z.string().optional(),
+  address:     z.string().optional(),
+  city:        z.string().optional(),
+  status:      z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']).optional(),
   observations: z.string().optional(),
 });
 
