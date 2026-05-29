@@ -4,19 +4,22 @@ import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNum
 import { notifyNewTicket } from '@/lib/notifications';
 import { z } from 'zod';
 
+// Helper: convierte cadenas vacías a undefined para campos opcionales
+const emptyToUndefined = z.string().transform((v) => v === '' ? undefined : v);
+
 const ticketSchema = z.object({
   subject: z.string().min(1),
   description: z.string().min(1),
   type: z.enum(['HARDWARE', 'SOFTWARE', 'NETWORKS', 'MICROSOFT_365', 'INTERNET', 'PRINTERS', 'SERVER', 'CAMERAS', 'REMOTE_SUPPORT', 'OTHER']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
   requesterName: z.string().min(1),
-  requesterEmail: z.string().email().optional(),
-  requesterPhone: z.string().optional(),
-  requesterPosition: z.string().optional(),
-  clientId: z.string(),
-  assignedToId: z.string().optional(),
-  relatedAssetId: z.string().optional(),
-  dueDate: z.string().optional(),
+  requesterEmail: emptyToUndefined.pipe(z.string().email().optional()).optional(),
+  requesterPhone: emptyToUndefined.optional(),
+  requesterPosition: emptyToUndefined.optional(),
+  clientId: z.string().min(1),
+  assignedToId: emptyToUndefined.optional(),
+  relatedAssetId: emptyToUndefined.optional(),
+  dueDate: emptyToUndefined.optional(),
 });
 
 export async function GET(req: NextRequest) {
