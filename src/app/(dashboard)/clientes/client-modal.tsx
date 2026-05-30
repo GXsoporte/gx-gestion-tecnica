@@ -48,7 +48,20 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: client
-      ? { ...client }
+      ? {
+          clientType:   client.clientType   ?? 'COMPANY',
+          companyName:  client.companyName  ?? '',
+          nit:          client.nit          ?? '',
+          cedula:       client.cedula       ?? '',
+          contactName:  client.contactName  ?? '',
+          email:        client.email        ?? '',
+          phone:        client.phone        ?? '',
+          address:      client.address      ?? '',
+          city:         client.city         ?? '',
+          country:      client.country      ?? 'Colombia',
+          status:       (client.status as any) ?? 'ACTIVE',
+          observations: client.observations ?? '',
+        }
       : { clientType: 'COMPANY', status: 'ACTIVE', country: 'Colombia' },
   });
 
