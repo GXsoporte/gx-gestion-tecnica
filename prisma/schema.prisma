@@ -178,6 +178,7 @@ model ClientUser {
   companyId      String
   name           String
   cargo          String?
+  phone          String?
   pcUsername     String?
   pcPassword     String?
   adminUsername  String?

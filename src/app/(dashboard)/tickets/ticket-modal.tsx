@@ -98,17 +98,28 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
     }
   }, [clients.length]);
 
-  // Cuando se selecciona un ClientUser: auto-rellenar nombre del solicitante
+  // Cuando se selecciona un ClientUser: auto-rellenar datos del solicitante
   const handleClientUserChange = (userId: string) => {
     setSelectedClientUserId(userId);
-    if (!userId) return;
+    if (!userId) {
+      setValue('requesterName', '');
+      setValue('requesterEmail', '');
+      setValue('requesterPhone', '');
+      setValue('requesterPosition', '');
+      setValue('relatedAssetId', '');
+      return;
+    }
     const u = clientUsers.find((u: any) => u.id === userId);
     if (u) {
-      setValue('requesterName', u.name, { shouldValidate: true });
-      if (u.email1) setValue('requesterEmail', u.email1);
-      // Si el usuario tiene exactamente 1 equipo, auto-seleccionarlo
+      setValue('requesterName',     u.name     ?? '', { shouldValidate: true });
+      setValue('requesterEmail',    u.email1   ?? '');
+      setValue('requesterPhone',    u.phone    ?? '');
+      setValue('requesterPosition', u.cargo    ?? '');
+      // Si tiene 1 solo equipo, auto-seleccionarlo
       if (u.assets?.length === 1) {
         setValue('relatedAssetId', u.assets[0].id);
+      } else {
+        setValue('relatedAssetId', '');
       }
     }
   };

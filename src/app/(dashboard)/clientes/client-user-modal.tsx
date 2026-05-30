@@ -29,6 +29,7 @@ const platformSchema = z.object({
 const schema = z.object({
   name:           z.string().min(1, 'El nombre es requerido'),
   cargo:          z.string().optional(),
+  phone:          z.string().optional(),
   pcUsername:     z.string().optional(),
   pcPassword:     z.string().optional(),
   adminUsername:  z.string().optional(),
@@ -143,6 +144,7 @@ export function ClientUserModal({
       ? {
           name:           user.name           ?? '',
           cargo:          user.cargo          ?? '',
+          phone:          user.phone          ?? '',
           pcUsername:     user.pcUsername     ?? '',
           pcPassword:     user.pcPassword     ?? '',
           adminUsername:  user.adminUsername  ?? '',
@@ -223,6 +225,12 @@ export function ClientUserModal({
                 <input {...register('cargo')} placeholder="Auxiliar contable, Gerente..." className={SC} />
               </div>
             )}
+
+            {/* Teléfono — siempre visible */}
+            <div>
+              <label className="form-label mb-1.5 block">Teléfono</label>
+              <input {...register('phone')} placeholder="+57 300 000 0000" className={SC} />
+            </div>
           </div>
 
           {/* ── Usuario PC ── */}

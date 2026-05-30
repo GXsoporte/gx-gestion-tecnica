@@ -14,6 +14,7 @@ const platformSchema = z.object({
 const updateSchema = z.object({
   name:           z.string().min(1).optional(),
   cargo:          z.string().optional(),
+  phone:          z.string().optional(),
   pcUsername:     z.string().optional(),
   pcPassword:     z.string().optional(),
   adminUsername:  z.string().optional(),
