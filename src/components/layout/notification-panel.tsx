@@ -103,34 +103,42 @@ export function NotificationPanel() {
       {open && (
         <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl border border-border shadow-premium z-50 flex flex-col max-h-[480px]">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <Bell className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold">Notificaciones</span>
-              {unreadCount > 0 && (
-                <span className="text-xs bg-red-100 text-red-600 font-semibold px-1.5 py-0.5 rounded-full">
-                  {unreadCount} nuevas
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              {unreadCount > 0 && (
+          <div className="px-4 py-3 border-b border-border flex-shrink-0">
+            <div className="flex items-center justify-between">
+              {/* Título */}
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="text-sm font-semibold">Notificaciones</span>
+              </div>
+              {/* Acciones */}
+              <div className="flex items-center gap-1">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllRead}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary px-2 py-1 rounded-lg hover:bg-muted transition-colors whitespace-nowrap"
+                    title="Marcar todas como leídas"
+                  >
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    Leídas
+                  </button>
+                )}
                 <button
-                  onClick={markAllRead}
-                  className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 px-2 py-1 rounded hover:bg-muted transition-colors"
-                  title="Marcar todas como leídas"
+                  onClick={() => setOpen(false)}
+                  className="p-1 rounded-lg hover:bg-muted transition-colors"
                 >
-                  <CheckCheck className="w-3.5 h-3.5" />
-                  Leídas
+                  <X className="w-3.5 h-3.5 text-muted-foreground" />
                 </button>
-              )}
-              <button
-                onClick={() => setOpen(false)}
-                className="p-1 rounded hover:bg-muted transition-colors"
-              >
-                <X className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
+              </div>
             </div>
+            {/* Badge de no leídas en línea separada — solo si hay */}
+            {unreadCount > 0 && (
+              <p className="text-xs text-muted-foreground mt-1 ml-6">
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full inline-block" />
+                  {unreadCount} notificación{unreadCount !== 1 ? 'es' : ''} sin leer
+                </span>
+              </p>
+            )}
           </div>
 
           {/* List */}
