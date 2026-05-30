@@ -24,6 +24,7 @@ const updateSchema = z.object({
   email2Password: z.string().optional(),
   platforms:      z.array(platformSchema).optional(),
   notes:          z.string().optional(),
+  assetIds:       z.array(z.string()).optional(), // equipos asignados
 });
 
 export async function PATCH(
@@ -48,19 +49,34 @@ export async function PATCH(
     const body = await req.json();
     const data = updateSchema.parse(body);
 
-    const { platforms, ...rest } = data;
+    const { platforms, assetIds, ...rest } = data;
+
+    await prisma.$transaction(async (tx: any) => {
+      // Desasignar todos los activos previos de este usuario
+      await tx.asset.updateMany({
+        where: { clientUserId: params.userId },
+        data:  { clientUserId: null },
+      });
+      // Asignar los nuevos activos seleccionados
+      if (assetIds && assetIds.length > 0) {
+        await tx.asset.updateMany({
+          where: { id: { in: assetIds } },
+          data:  { clientUserId: params.userId },
+        });
+      }
+    });
+
     const updated = await db.clientUser.update({
       where: { id: params.userId },
       data: {
         ...rest,
-        ...(platforms !== undefined
-          ? { platforms: JSON.stringify(platforms) }
-          : {}),
+        ...(platforms !== undefined ? { platforms: JSON.stringify(platforms) } : {}),
       },
+      include: { assets: { select: { id: true, assetNumber: true, brand: true, model: true, type: true } } },
     });
 
     await logAudit('UPDATE', 'ClientUser', params.userId, client.companyId, session.user.id);
-    return apiResponse(updated);
+    return apiResponse({ ...updated, platforms: updated.platforms ? JSON.parse(updated.platforms) : [] });
   } catch (e: any) {
     if (e.name === 'ZodError') return apiError('Datos inválidos', 400);
     return apiError(e.message, 500);

@@ -8,8 +8,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   X, Loader2, Eye, EyeOff, Monitor, Shield, Mail,
-  Copy, Briefcase, Plus, Trash2, Globe,
+  Copy, Briefcase, Plus, Trash2, Globe, Package, CheckSquare, Square,
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 const SC = 'w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20';
 
@@ -41,10 +42,16 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const ASSET_TYPE_ICONS: Record<string, string> = {
+  DESKTOP: '🖥', LAPTOP: '💻', SERVER: '🖧', PRINTER: '🖨',
+  NETWORK_DEVICE: '📡', CAMERA: '📷', PHONE: '📱',
+  TABLET: '📱', UPS: '🔋', MONITOR: '🖥', OTHER: '📦',
+};
+
 interface ClientUserModalProps {
   clientId:     string;
   clientName:   string;
-  clientType?:  string;   // COMPANY | NATURAL
+  clientType?:  string;
   clientEmail?: string;
   user?:        any;
   onClose:      () => void;
@@ -94,6 +101,25 @@ export function ClientUserModal({
   const isNatural = clientType === 'NATURAL';
   const isCompany = clientType === 'COMPANY';
 
+  /* ── Equipos del cliente (para asignar) ──────────────── */
+  const { data: clientAssets = [] } = useQuery({
+    queryKey: ['assets-for-client', clientId],
+    queryFn: async () => {
+      const { data } = await axios.get(`/api/inventario?clientId=${clientId}`);
+      return data.data ?? [];
+    },
+  });
+
+  // IDs de activos asignados a este usuario (previos)
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(
+    user?.assets?.map((a: any) => a.id) ?? []
+  );
+
+  const toggleAsset = (id: string) =>
+    setSelectedAssetIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+
   /* ── Estado local: plataformas dinámicas ──────────────── */
   const [platforms, setPlatforms] = useState<Platform[]>(
     user?.platforms ?? []
@@ -140,7 +166,7 @@ export function ClientUserModal({
     // Validar que las plataformas tengan nombre
     const validPlatforms = platforms.filter(p => p.name.trim());
     try {
-      const payload = { ...data, platforms: validPlatforms };
+      const payload = { ...data, platforms: validPlatforms, assetIds: selectedAssetIds };
       if (isEdit) {
         await axios.patch(`/api/clientes/${clientId}/usuarios/${user.id}`, payload);
       } else {
@@ -342,6 +368,57 @@ export function ClientUserModal({
               )}
             </div>
           )}
+
+          {/* ── Equipos asignados ── */}
+          <div className="border border-border rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-indigo-500" />
+              <span className="text-sm font-semibold">Equipos asignados</span>
+              {selectedAssetIds.length > 0 && (
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+                  {selectedAssetIds.length} seleccionado{selectedAssetIds.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+
+            {clientAssets.length === 0 ? (
+              <div className="text-center py-3">
+                <Monitor className="w-7 h-7 text-muted-foreground mx-auto mb-1.5 opacity-30" />
+                <p className="text-xs text-muted-foreground">
+                  Este cliente no tiene equipos en inventario
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                {clientAssets.map((a: any) => {
+                  const selected = selectedAssetIds.includes(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => toggleAsset(a.id)}
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all ${
+                        selected
+                          ? 'border-indigo-400 bg-indigo-50 dark:bg-indigo-500/10'
+                          : 'border-border hover:border-indigo-300 hover:bg-muted/40'
+                      }`}
+                    >
+                      {selected
+                        ? <CheckSquare className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+                        : <Square className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      }
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold truncate">
+                          {ASSET_TYPE_ICONS[a.type] ?? '📦'} {a.brand} {a.model}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground font-mono">{a.assetNumber}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Notas */}
           <div>

@@ -19,8 +19,9 @@ const schema = z.object({
   requesterEmail: z.string().email().optional().or(z.literal('')),
   requesterPhone: z.string().optional(),
   requesterPosition: z.string().optional(),
-  clientId: z.string().min(1, 'Requerido'),
-  assignedToId: z.string().optional(),
+  clientId:       z.string().min(1, 'Requerido'),
+  assignedToId:   z.string().optional(),
+  relatedAssetId: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -49,6 +50,8 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
   const isEdit = !!ticket;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>(ticket?.clientId ?? '');
+  const [selectedClientUserId, setSelectedClientUserId] = useState<string>('');
 
   const { data: clients = [] } = useQuery({
     queryKey: ['clients-select'],
@@ -66,11 +69,22 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
     },
   });
 
+  // Usuarios del cliente seleccionado
+  const { data: clientUsers = [] } = useQuery({
+    queryKey: ['client-users-for-ticket', selectedClientId],
+    queryFn: async () => {
+      const { data } = await axios.get(`/api/clientes/${selectedClientId}/usuarios`);
+      return data.data ?? [];
+    },
+    enabled: !!selectedClientId,
+  });
+
   const {
     register,
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -83,6 +97,21 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
       setValue('clientId', ticket.clientId, { shouldValidate: false });
     }
   }, [clients.length]);
+
+  // Cuando se selecciona un ClientUser: auto-rellenar nombre del solicitante
+  const handleClientUserChange = (userId: string) => {
+    setSelectedClientUserId(userId);
+    if (!userId) return;
+    const u = clientUsers.find((u: any) => u.id === userId);
+    if (u) {
+      setValue('requesterName', u.name, { shouldValidate: true });
+      if (u.email1) setValue('requesterEmail', u.email1);
+      // Si el usuario tiene exactamente 1 equipo, auto-seleccionarlo
+      if (u.assets?.length === 1) {
+        setValue('relatedAssetId', u.assets[0].id);
+      }
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -175,6 +204,14 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
               <label className="form-label mb-1.5 block">Cliente *</label>
               <select
                 {...register('clientId')}
+                onChange={(e) => {
+                  setValue('clientId', e.target.value, { shouldValidate: true });
+                  setSelectedClientId(e.target.value);
+                  setSelectedClientUserId('');
+                  setValue('requesterName', '');
+                  setValue('requesterEmail', '');
+                  setValue('relatedAssetId', '');
+                }}
                 className="w-full border border-border rounded-xl px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="">Seleccionar cliente...</option>
@@ -198,6 +235,49 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
               </select>
             </div>
           </div>
+
+          {/* Solicitante — usuario del cliente */}
+          {selectedClientId && clientUsers.length > 0 && (
+            <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">
+                👤 Seleccionar solicitante del cliente
+              </p>
+              <select
+                value={selectedClientUserId}
+                onChange={(e) => handleClientUserChange(e.target.value)}
+                className="w-full border border-blue-300 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+              >
+                <option value="">— Seleccionar persona —</option>
+                {clientUsers.map((u: any) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}{u.cargo ? ` · ${u.cargo}` : ''}
+                  </option>
+                ))}
+              </select>
+
+              {/* Equipos del usuario seleccionado */}
+              {selectedClientUserId && (() => {
+                const u = clientUsers.find((u: any) => u.id === selectedClientUserId);
+                if (!u?.assets?.length) return null;
+                return (
+                  <div>
+                    <p className="text-[11px] font-medium text-blue-600 mb-2">Equipo(s) asignado(s) a {u.name}:</p>
+                    <select
+                      {...register('relatedAssetId')}
+                      className="w-full border border-blue-300 rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+                    >
+                      <option value="">— Seleccionar equipo del ticket —</option>
+                      {u.assets.map((a: any) => (
+                        <option key={a.id} value={a.id}>
+                          🖥 {a.brand} {a.model} · {a.assetNumber}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
 
           <div className="border-t border-border pt-4">
             <p className="text-sm font-semibold text-foreground mb-3">Información del solicitante</p>

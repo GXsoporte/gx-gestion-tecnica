@@ -355,6 +355,28 @@ export function ClientDetailClient({ id }: { id: string }) {
                   )}
                 </div>
 
+                {/* Equipos asignados al usuario */}
+                {Array.isArray(u.assets) && u.assets.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-[10px] font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                      <Monitor className="w-3 h-3" /> Equipos asignados
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {u.assets.map((a: any) => (
+                        <Link
+                          key={a.id}
+                          href={`/inventario/${a.id}`}
+                          className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded-lg px-2.5 py-1.5 text-xs hover:bg-indigo-100 transition-colors"
+                        >
+                          <Monitor className="w-3 h-3" />
+                          <span className="font-medium">{a.brand} {a.model}</span>
+                          <span className="font-mono text-[10px] opacity-70">{a.assetNumber}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Plataformas */}
                 {Array.isArray(u.platforms) && u.platforms.length > 0 && (
                   <div className="mt-3">

@@ -24,6 +24,7 @@ const userSchema = z.object({
   email2Password: z.string().optional(),
   platforms:      z.array(platformSchema).optional(),
   notes:          z.string().optional(),
+  assetIds:       z.array(z.string()).optional(),
 });
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -37,6 +38,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const users = await db.clientUser.findMany({
       where:   { clientId: params.id },
       orderBy: { createdAt: 'asc' },
+      include: {
+        assets: {
+          select: { id: true, assetNumber: true, brand: true, model: true, type: true, status: true },
+        },
+      },
     });
 
     const parsed = users.map((u: any) => ({
@@ -64,7 +70,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const body = await req.json();
     const data = userSchema.parse(body);
 
-    const { platforms, ...rest } = data;
+    const { platforms, assetIds, ...rest } = data;
     const user = await db.clientUser.create({
       data: {
         ...rest,
@@ -73,6 +79,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         companyId: client.companyId,
       },
     });
+
+    // Asignar activos seleccionados
+    if (assetIds && assetIds.length > 0) {
+      await prisma.asset.updateMany({
+        where: { id: { in: assetIds } },
+        data:  { clientUserId: user.id },
+      });
+    }
 
     await logAudit('CREATE', 'ClientUser', user.id, client.companyId, session.user.id);
     return apiResponse(user, 201);

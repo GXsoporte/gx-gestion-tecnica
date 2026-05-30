@@ -193,6 +193,7 @@ model ClientUser {
 
   client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   company Company @relation(fields: [companyId], references: [id])
+  assets  Asset[]
 
   @@map("client_users")
 }
@@ -295,11 +296,13 @@ model Asset {
   qrCode          String?
   clientId        String
   companyId       String
+  clientUserId    String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   client          Client        @relation(fields: [clientId], references: [id])
   company         Company       @relation(fields: [companyId], references: [id])
+  clientUser      ClientUser?   @relation(fields: [clientUserId], references: [id], onDelete: SetNull)
   tickets         Ticket[]
   activities      Activity[]
   maintenances    Maintenance[]
