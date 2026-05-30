@@ -24,7 +24,15 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export function SolucionModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+export function SolucionModal({
+  onClose,
+  onSuccess,
+  prefillDiagnosisId,
+}: {
+  onClose: () => void;
+  onSuccess: () => void;
+  prefillDiagnosisId?: string;
+}) {
   const { data: approvedDiagnoses = [] } = useQuery({
     queryKey: ['diagnoses-approved'],
     queryFn: async () => {
@@ -38,12 +46,13 @@ export function SolucionModal({ onClose, onSuccess }: { onClose: () => void; onS
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: prefillDiagnosisId ? { diagnosisId: prefillDiagnosisId } : {},
   });
 
   const selectedDiagId = watch('diagnosisId');
   const selectedDiag = approvedDiagnoses.find((d: any) => d.id === selectedDiagId);
 
-  // Auto-fill from selected diagnosis
+  // Auto-fill cuando cambia el diagnóstico seleccionado
   const handleDiagChange = (diagId: string) => {
     setValue('diagnosisId', diagId);
     const diag = approvedDiagnoses.find((d: any) => d.id === diagId);
@@ -53,6 +62,16 @@ export function SolucionModal({ onClose, onSuccess }: { onClose: () => void; onS
       setValue('clientId', diag.clientId);
     }
   };
+
+  // Auto-fill cuando cargan los diagnósticos con prefill
+  if (prefillDiagnosisId && selectedDiagId === prefillDiagnosisId && approvedDiagnoses.length > 0) {
+    const diag = approvedDiagnoses.find((d: any) => d.id === prefillDiagnosisId);
+    if (diag && !watch('ticketId')) {
+      setValue('ticketId', diag.ticketId);
+      setValue('assetId', diag.assetId);
+      setValue('clientId', diag.clientId);
+    }
+  }
 
   const onSubmit = async (data: FormData) => {
     try {
