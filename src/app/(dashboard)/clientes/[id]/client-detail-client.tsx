@@ -18,6 +18,7 @@ import {
   ASSET_TYPE_LABELS,
 } from '@/lib/utils';
 import { ClientUserModal } from '../client-user-modal';
+import { ClientUserDetail } from '../client-user-detail';
 
 function MaskedField({ value }: { value?: string }) {
   const [show, setShow] = useState(false);
@@ -36,6 +37,7 @@ export function ClientDetailClient({ id }: { id: string }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [userModal, setUserModal] = useState<{ open: boolean; user?: any }>({ open: false });
+  const [detailUser, setDetailUser] = useState<any>(null); // panel de detalle
   const [confirmDeleteUserId, setConfirmDeleteUserId] = useState<string | null>(null);
   const [userSearch, setUserSearch] = useState('');
   const [showAllUsers, setShowAllUsers] = useState(false);
@@ -316,7 +318,12 @@ export function ClientDetailClient({ id }: { id: string }) {
                           <span className="text-sm font-bold text-primary">{u.name?.[0]?.toUpperCase()}</span>
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{u.name}</p>
+                          <button
+                            onClick={() => setDetailUser(u)}
+                            className="text-sm font-semibold truncate text-left hover:text-primary hover:underline transition-colors block w-full"
+                          >
+                            {u.name}
+                          </button>
                           {u.cargo && (
                             <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                               <Briefcase className="w-3 h-3 flex-shrink-0" />{u.cargo}
@@ -422,6 +429,18 @@ export function ClientDetailClient({ id }: { id: string }) {
           );
         })()}
       </div>
+
+      {/* Panel de detalle del usuario */}
+      {detailUser && (
+        <ClientUserDetail
+          user={detailUser}
+          onClose={() => setDetailUser(null)}
+          onEdit={() => {
+            setUserModal({ open: true, user: detailUser });
+            setDetailUser(null);
+          }}
+        />
+      )}
 
       {/* Modal usuario */}
       {userModal.open && (
