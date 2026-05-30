@@ -200,7 +200,7 @@ export function TicketModal({ ticket, onClose, onSuccess }: TicketModalProps) {
           </div>
 
           <div>
-            <label className="form-label mb-1.5 block">Descripción detallada *</label>
+            <label className="form-label mb-1.5 block">Descripción del problema *</label>
             <textarea
               {...register('description')}
               rows={4}
