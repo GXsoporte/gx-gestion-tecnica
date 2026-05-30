@@ -37,6 +37,9 @@ export function ClientDetailClient({ id }: { id: string }) {
   const queryClient = useQueryClient();
   const [userModal, setUserModal] = useState<{ open: boolean; user?: any }>({ open: false });
   const [confirmDeleteUserId, setConfirmDeleteUserId] = useState<string | null>(null);
+  const [userSearch, setUserSearch] = useState('');
+  const [showAllUsers, setShowAllUsers] = useState(false);
+  const USERS_PAGE = 6; // cuántos mostrar por defecto
 
   const { data: client, isLoading } = useQuery({
     queryKey: ['client', id],
@@ -247,157 +250,177 @@ export function ClientDetailClient({ id }: { id: string }) {
 
       {/* ── Usuarios del cliente ───────────────────────────── */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-border shadow-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-2 flex-1">
             <Users className="w-4 h-4 text-primary" />
             <h3 className="section-title">Usuarios del cliente</h3>
             <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{clientUsers.length}</span>
           </div>
-          <button
-            onClick={() => setUserModal({ open: true })}
-            className="flex items-center gap-1.5 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors font-medium"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Nuevo usuario
-          </button>
-        </div>
-
-        {clientUsers.length === 0 ? (
-          <div className="p-8 text-center">
-            <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-40" />
-            <p className="text-sm text-muted-foreground">No hay usuarios registrados</p>
+          <div className="flex items-center gap-2">
+            {/* Búsqueda */}
+            <div className="relative">
+              <input
+                value={userSearch}
+                onChange={e => { setUserSearch(e.target.value); setShowAllUsers(true); }}
+                placeholder="Buscar usuario..."
+                className="pl-8 pr-3 py-1.5 border border-border rounded-lg text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 w-44"
+              />
+              <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+            </div>
             <button
               onClick={() => setUserModal({ open: true })}
-              className="mt-3 text-xs text-primary hover:underline"
+              className="flex items-center gap-1.5 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-colors font-medium whitespace-nowrap"
             >
-              Agregar primer usuario
+              <Plus className="w-3.5 h-3.5" />
+              Nuevo usuario
             </button>
           </div>
-        ) : (
-          <div className="divide-y divide-border">
-            {clientUsers.map((u: any) => (
-              <div key={u.id} className="px-6 py-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-bold text-primary">{u.name?.[0]?.toUpperCase()}</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{u.name}</p>
-                      {u.cargo && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Briefcase className="w-3 h-3" />{u.cargo}
-                        </p>
-                      )}
-                      {!u.cargo && u.notes && <p className="text-xs text-muted-foreground">{u.notes}</p>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => setUserModal({ open: true, user: u })}
-                      className="p-1.5 hover:bg-blue-50 hover:text-blue-600 rounded transition-colors text-muted-foreground"
-                      title="Editar"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    {confirmDeleteUserId === u.id ? (
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => handleDeleteUser(u.id)} className="text-xs text-white bg-red-600 hover:bg-red-700 px-2 py-0.5 rounded font-medium">
-                          Confirmar
-                        </button>
-                        <button onClick={() => setConfirmDeleteUserId(null)} className="p-0.5 hover:bg-muted rounded">
-                          <X className="w-3 h-3 text-muted-foreground" />
-                        </button>
+        </div>
+
+        {(() => {
+          const filtered = clientUsers.filter((u: any) =>
+            !userSearch ||
+            u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
+            u.cargo?.toLowerCase().includes(userSearch.toLowerCase()) ||
+            u.email1?.toLowerCase().includes(userSearch.toLowerCase())
+          );
+          const visible = showAllUsers ? filtered : filtered.slice(0, USERS_PAGE);
+
+          if (filtered.length === 0) return (
+            <div className="p-8 text-center">
+              <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2 opacity-40" />
+              <p className="text-sm text-muted-foreground">
+                {userSearch ? 'Sin resultados para la búsqueda' : 'No hay usuarios registrados'}
+              </p>
+              {!userSearch && (
+                <button onClick={() => setUserModal({ open: true })} className="mt-3 text-xs text-primary hover:underline">
+                  Agregar primer usuario
+                </button>
+              )}
+            </div>
+          );
+
+          return (
+            <>
+              {/* Grid de tarjetas */}
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {visible.map((u: any) => (
+                  <div key={u.id} className="border border-border rounded-xl p-4 hover:border-primary/30 hover:bg-muted/20 transition-all">
+                    {/* Cabecera tarjeta */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-primary">{u.name?.[0]?.toUpperCase()}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{u.name}</p>
+                          {u.cargo && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                              <Briefcase className="w-3 h-3 flex-shrink-0" />{u.cargo}
+                            </p>
+                          )}
+                          {u.phone && (
+                            <p className="text-xs text-muted-foreground">{u.phone}</p>
+                          )}
+                        </div>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => setConfirmDeleteUserId(u.id)}
-                        className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded transition-colors text-muted-foreground"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1 flex-shrink-0 ml-1">
+                        <button onClick={() => setUserModal({ open: true, user: u })}
+                          className="p-1 hover:bg-blue-50 hover:text-blue-600 rounded transition-colors text-muted-foreground" title="Editar">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        {confirmDeleteUserId === u.id ? (
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => handleDeleteUser(u.id)} className="text-[10px] text-white bg-red-600 hover:bg-red-700 px-1.5 py-0.5 rounded font-medium">✓</button>
+                            <button onClick={() => setConfirmDeleteUserId(null)} className="p-0.5 hover:bg-muted rounded"><X className="w-3 h-3 text-muted-foreground" /></button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setConfirmDeleteUserId(u.id)}
+                            className="p-1 hover:bg-red-50 hover:text-red-600 rounded transition-colors text-muted-foreground" title="Eliminar">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Credenciales compactas */}
+                    <div className="grid grid-cols-2 gap-1.5 mb-2">
+                      {(u.pcUsername || u.pcPassword) && (
+                        <div className="bg-muted/40 rounded-lg p-2">
+                          <p className="text-[9px] font-semibold text-muted-foreground mb-0.5">🖥 PC</p>
+                          {u.pcUsername && <p className="text-[10px] font-mono truncate">{u.pcUsername}</p>}
+                          <MaskedField value={u.pcPassword} />
+                        </div>
+                      )}
+                      {(u.adminUsername || u.adminPassword) && (
+                        <div className="bg-muted/40 rounded-lg p-2">
+                          <p className="text-[9px] font-semibold text-muted-foreground mb-0.5">🛡 Admin</p>
+                          {u.adminUsername && <p className="text-[10px] font-mono truncate">{u.adminUsername}</p>}
+                          <MaskedField value={u.adminPassword} />
+                        </div>
+                      )}
+                      {(u.email1 || u.email1Password) && (
+                        <div className="bg-muted/40 rounded-lg p-2">
+                          <p className="text-[9px] font-semibold text-muted-foreground mb-0.5">✉ Correo 1</p>
+                          {u.email1 && <p className="text-[10px] truncate">{u.email1}</p>}
+                          <MaskedField value={u.email1Password} />
+                        </div>
+                      )}
+                      {(u.email2 || u.email2Password) && (
+                        <div className="bg-muted/40 rounded-lg p-2">
+                          <p className="text-[9px] font-semibold text-muted-foreground mb-0.5">✉ Correo 2</p>
+                          {u.email2 && <p className="text-[10px] truncate">{u.email2}</p>}
+                          <MaskedField value={u.email2Password} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Equipos */}
+                    {Array.isArray(u.assets) && u.assets.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {u.assets.map((a: any) => (
+                          <Link key={a.id} href={`/inventario/${a.id}`}
+                            className="flex items-center gap-1 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 text-indigo-700 rounded px-1.5 py-0.5 text-[10px] hover:bg-indigo-100 transition-colors">
+                            <Monitor className="w-2.5 h-2.5" />
+                            <span className="font-medium truncate max-w-[80px]">{a.brand} {a.model}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Plataformas */}
+                    {Array.isArray(u.platforms) && u.platforms.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {u.platforms.map((p: any, i: number) => (
+                          <span key={i} className="bg-orange-50 border border-orange-200 text-orange-700 rounded px-1.5 py-0.5 text-[10px] font-medium truncate max-w-[90px]">
+                            🌐 {p.name}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
-                </div>
-
-                {/* Credenciales */}
-                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {(u.pcUsername || u.pcPassword) && (
-                    <div className="bg-muted/40 rounded-lg p-2.5">
-                      <p className="text-[10px] font-semibold text-muted-foreground mb-1 flex items-center gap-1">
-                        <Monitor className="w-3 h-3" /> PC
-                      </p>
-                      {u.pcUsername && <p className="text-xs font-mono truncate">{u.pcUsername}</p>}
-                      <MaskedField value={u.pcPassword} />
-                    </div>
-                  )}
-                  {(u.adminUsername || u.adminPassword) && (
-                    <div className="bg-muted/40 rounded-lg p-2.5">
-                      <p className="text-[10px] font-semibold text-muted-foreground mb-1">🛡 Admin</p>
-                      {u.adminUsername && <p className="text-xs font-mono truncate">{u.adminUsername}</p>}
-                      <MaskedField value={u.adminPassword} />
-                    </div>
-                  )}
-                  {(u.email1 || u.email1Password) && (
-                    <div className="bg-muted/40 rounded-lg p-2.5">
-                      <p className="text-[10px] font-semibold text-muted-foreground mb-1">✉ Correo 1</p>
-                      {u.email1 && <p className="text-xs truncate">{u.email1}</p>}
-                      <MaskedField value={u.email1Password} />
-                    </div>
-                  )}
-                  {(u.email2 || u.email2Password) && (
-                    <div className="bg-muted/40 rounded-lg p-2.5">
-                      <p className="text-[10px] font-semibold text-muted-foreground mb-1">✉ Correo 2</p>
-                      {u.email2 && <p className="text-xs truncate">{u.email2}</p>}
-                      <MaskedField value={u.email2Password} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Equipos asignados al usuario */}
-                {Array.isArray(u.assets) && u.assets.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-[10px] font-semibold text-muted-foreground mb-2 flex items-center gap-1">
-                      <Monitor className="w-3 h-3" /> Equipos asignados
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {u.assets.map((a: any) => (
-                        <Link
-                          key={a.id}
-                          href={`/inventario/${a.id}`}
-                          className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded-lg px-2.5 py-1.5 text-xs hover:bg-indigo-100 transition-colors"
-                        >
-                          <Monitor className="w-3 h-3" />
-                          <span className="font-medium">{a.brand} {a.model}</span>
-                          <span className="font-mono text-[10px] opacity-70">{a.assetNumber}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Plataformas */}
-                {Array.isArray(u.platforms) && u.platforms.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-[10px] font-semibold text-muted-foreground mb-2 flex items-center gap-1">
-                      <Globe className="w-3 h-3" /> Otras plataformas
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                      {u.platforms.map((p: any, i: number) => (
-                        <div key={i} className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-lg p-2.5">
-                          <p className="text-[10px] font-bold text-orange-700 dark:text-orange-400 mb-1 truncate">{p.name}</p>
-                          {p.username && <p className="text-xs font-mono truncate text-foreground">{p.username}</p>}
-                          <MaskedField value={p.password} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+
+              {/* Ver más / Ver menos */}
+              {filtered.length > USERS_PAGE && (
+                <div className="px-4 pb-4 text-center border-t border-border pt-3">
+                  <button
+                    onClick={() => setShowAllUsers(v => !v)}
+                    className="text-xs text-primary hover:underline font-medium"
+                  >
+                    {showAllUsers
+                      ? `▲ Ver menos`
+                      : `▼ Ver ${filtered.length - USERS_PAGE} usuario${filtered.length - USERS_PAGE > 1 ? 's' : ''} más`}
+                  </button>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Modal usuario */}

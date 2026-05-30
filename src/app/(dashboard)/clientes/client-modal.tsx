@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -52,10 +52,12 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
       : { clientType: 'COMPANY', status: 'ACTIVE', country: 'Colombia' },
   });
 
-  const switchType = (t: 'COMPANY' | 'NATURAL') => {
-    setClientType(t);
-    setValue('clientType', t);
-  };
+  // Sincroniza el estado local clientType → valor del form (sin necesitar hidden input)
+  useEffect(() => {
+    setValue('clientType', clientType, { shouldValidate: false });
+  }, [clientType]);
+
+  const switchType = (t: 'COMPANY' | 'NATURAL') => setClientType(t);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -68,6 +70,11 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Error al guardar');
     }
+  };
+
+  const onError = (errs: any) => {
+    const first = Object.values(errs)[0] as any;
+    toast.error(first?.message ?? 'Completa los campos requeridos');
   };
 
   const isNatural = clientType === 'NATURAL';
@@ -87,7 +94,7 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="p-6 space-y-5">
 
           {/* Toggle tipo de cliente */}
           <div>
@@ -120,7 +127,6 @@ export function ClientModal({ client, onClose, onSuccess }: ClientModalProps) {
                 Persona Natural
               </button>
             </div>
-            <input type="hidden" {...register('clientType')} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
