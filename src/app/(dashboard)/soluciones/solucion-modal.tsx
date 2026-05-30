@@ -1,12 +1,13 @@
 'use client';
 
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Paperclip, FileText, Image, Trash2 } from 'lucide-react';
 
 const schema = z.object({
   diagnosisId: z.string().min(1, 'Selecciona un diagnóstico aprobado'),
@@ -49,6 +50,9 @@ export function SolucionModal({
     defaultValues: prefillDiagnosisId ? { diagnosisId: prefillDiagnosisId } : {},
   });
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+
   const selectedDiagId = watch('diagnosisId');
   const selectedDiag = approvedDiagnoses.find((d: any) => d.id === selectedDiagId);
 
@@ -75,7 +79,24 @@ export function SolucionModal({
 
   const onSubmit = async (data: FormData) => {
     try {
-      await axios.post('/api/soluciones', data);
+      const { data: res } = await axios.post('/api/soluciones', data);
+      const solutionId = res.data?.id;
+
+      // Subir archivos adjuntos si los hay
+      if (solutionId && pendingFiles.length > 0) {
+        for (const file of pendingFiles) {
+          try {
+            const fd = new globalThis.FormData();
+            fd.append('file', file);
+            fd.append('folder', 'soluciones');
+            const { data: up } = await axios.post('/api/upload', fd);
+            await axios.post(`/api/soluciones/${solutionId}/attachments`, up.data);
+          } catch {
+            toast.error(`No se pudo adjuntar ${file.name}`);
+          }
+        }
+      }
+
       onSuccess();
     } catch (e: any) {
       toast.error(e.response?.data?.error || 'Error al crear solución');
@@ -187,16 +208,79 @@ export function SolucionModal({
               className={fieldClass} />
           </div>
 
+          {/* ── Evidencias / Archivos adjuntos ── */}
+          <div className="border-t border-border pt-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Paperclip className="w-4 h-4 text-muted-foreground" />
+              <p className="text-sm font-semibold text-foreground">Evidencias y archivos adjuntos</p>
+              <span className="text-xs text-muted-foreground">(opcional)</span>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx"
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                setPendingFiles(prev => [...prev, ...files]);
+                e.target.value = '';
+              }}
+            />
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full border-2 border-dashed border-border rounded-xl py-3.5 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground hover:bg-muted/20 transition-colors flex items-center justify-center gap-2"
+            >
+              <Paperclip className="w-4 h-4" />
+              Seleccionar imágenes, PDF o documentos
+            </button>
+
+            {pendingFiles.length > 0 && (
+              <ul className="mt-3 space-y-2">
+                {pendingFiles.map((f, i) => (
+                  <li key={i} className="flex items-center gap-2.5 bg-muted/40 rounded-xl px-3 py-2.5">
+                    {f.type.startsWith('image/')
+                      ? <Image className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                      : <FileText className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    }
+                    <span className="flex-1 text-sm truncate">{f.name}</span>
+                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                      {(f.size / 1024).toFixed(0)} KB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPendingFiles(prev => prev.filter((_, j) => j !== i))}
+                      className="p-1 hover:text-destructive text-muted-foreground flex-shrink-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {pendingFiles.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                {pendingFiles.length} archivo{pendingFiles.length > 1 ? 's' : ''} listo{pendingFiles.length > 1 ? 's' : ''} para subir
+              </p>
+            )}
+          </div>
+
           {/* Botones */}
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="flex-1 border border-border py-2.5 rounded-xl text-sm font-medium hover:bg-muted">
+              className="flex-1 border border-border py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
               Cancelar
             </button>
             <button type="submit" disabled={isSubmitting || !selectedDiagId}
-              className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
+              className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors">
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-              Crear Solución
+              {pendingFiles.length > 0
+                ? `Crear Solución + ${pendingFiles.length} archivo${pendingFiles.length > 1 ? 's' : ''}`
+                : 'Crear Solución'}
             </button>
           </div>
         </form>
