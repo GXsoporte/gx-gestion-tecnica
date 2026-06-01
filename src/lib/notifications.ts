@@ -17,6 +17,142 @@ const transporter = nodemailer.createTransport({
 // ─── Destinatarios fijos ──────────────────────────────────────────────────────
 const SUPPORT_EMAIL = process.env.NOTIFY_EMAIL || 'soporte@gibux.com.co';
 
+// ─── Email: Diagnóstico al cliente ───────────────────────────────────────────
+export async function notifyDiagnosisToClient(params: {
+  diagnosisNumber: string;
+  clientName: string;
+  clientEmail: string;
+  technicianName: string;
+  ticketNumber: string;
+  ticketSubject: string;
+  assetInfo: string;
+  description: string;
+  problemCause?: string;
+  recommendation?: string;
+  estimatedCost?: number | null;
+  estimatedTime?: string;
+  requiresRepair: boolean;
+  appUrl: string;
+}) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn('[notifications] SMTP no configurado — email omitido');
+    return;
+  }
+
+  const html = `
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0"
+  style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+
+  <!-- Header -->
+  <tr><td style="background:#0f766e;padding:28px 32px;">
+    <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">🔬 Diagnóstico Técnico</h1>
+    <p style="margin:6px 0 0;color:#99f6e4;font-size:14px;">${params.clientName}</p>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="padding:32px;">
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin-bottom:24px;">
+      <span style="color:#15803d;font-weight:700;font-size:15px;">${params.diagnosisNumber}</span>
+      <span style="color:#64748b;font-size:13px;margin-left:12px;">Ticket: ${params.ticketNumber}</span>
+    </div>
+
+    <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1e293b;">${params.ticketSubject}</p>
+    <p style="margin:0 0 24px;font-size:13px;color:#64748b;">Equipo: <strong>${params.assetInfo}</strong> · Técnico: <strong>${params.technicianName}</strong></p>
+
+    <!-- Descripción -->
+    <div style="margin-bottom:20px;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Descripción del problema</p>
+      <p style="margin:0;font-size:14px;color:#1e293b;line-height:1.6;background:#f8fafc;border-left:3px solid #0f766e;padding:10px 14px;border-radius:0 6px 6px 0;">${params.description}</p>
+    </div>
+
+    ${params.problemCause ? `
+    <div style="margin-bottom:20px;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Causa identificada</p>
+      <p style="margin:0;font-size:14px;color:#1e293b;line-height:1.6;">${params.problemCause}</p>
+    </div>` : ''}
+
+    ${params.recommendation ? `
+    <div style="margin-bottom:20px;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Recomendación</p>
+      <p style="margin:0;font-size:14px;color:#1e293b;line-height:1.6;">${params.recommendation}</p>
+    </div>` : ''}
+
+    <!-- Estimados -->
+    ${(params.estimatedCost || params.estimatedTime) ? `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
+      ${params.estimatedCost ? `
+      <tr style="background:#f8fafc;">
+        <td style="padding:12px 16px;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;width:40%;">Costo estimado</td>
+        <td style="padding:12px 16px;font-size:15px;color:#15803d;font-weight:700;">$${Number(params.estimatedCost).toLocaleString('es-CO')}</td>
+      </tr>` : ''}
+      ${params.estimatedTime ? `
+      <tr>
+        <td style="padding:12px 16px;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">Tiempo estimado</td>
+        <td style="padding:12px 16px;font-size:14px;color:#1e293b;font-weight:600;">${params.estimatedTime}</td>
+      </tr>` : ''}
+      <tr style="${params.estimatedCost || params.estimatedTime ? 'background:#f8fafc;' : ''}">
+        <td style="padding:12px 16px;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;">¿Requiere reparación?</td>
+        <td style="padding:12px 16px;font-size:14px;font-weight:700;color:${params.requiresRepair ? '#ea580c' : '#16a34a'};">${params.requiresRepair ? 'Sí' : 'No'}</td>
+      </tr>
+    </table>` : ''}
+
+    <!-- CTA -->
+    <p style="margin:0 0 16px;font-size:14px;color:#475569;text-align:center;">
+      Por favor revise el diagnóstico y tome una decisión:
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>
+        <td align="center" style="padding:0 8px;">
+          <a href="${params.appUrl}/diagnosticos"
+             style="display:inline-block;background:#16a34a;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">
+            ✅ Aprobar diagnóstico
+          </a>
+        </td>
+        <td align="center" style="padding:0 8px;">
+          <a href="${params.appUrl}/diagnosticos"
+             style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">
+            ✗ No aprobar
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">
+      Para aprobar o rechazar el diagnóstico, ingrese a la plataforma GX Soporte con sus credenciales.<br/>
+      Este es un mensaje automático — no responda a este correo.
+    </p>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">GX Soporte · ${new Date().getFullYear()}</p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`;
+
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || '';
+  try {
+    await transporter.sendMail({
+      from: `"GX Soporte" <${from}>`,
+      to: params.clientEmail,
+      subject: `[Diagnóstico ${params.diagnosisNumber}] ${params.ticketSubject} — Su aprobación requerida`,
+      html,
+    });
+    console.log(`[notifications] Diagnóstico ${params.diagnosisNumber} enviado a ${params.clientEmail}`);
+  } catch (err) {
+    console.error('[notifications] Error al enviar diagnóstico:', err);
+    throw err; // Re-lanzamos para informar al usuario
+  }
+}
+
 // ─── Email: Nuevo ticket ──────────────────────────────────────────────────────
 export async function notifyNewTicket(ticket: {
   ticketNumber: string;

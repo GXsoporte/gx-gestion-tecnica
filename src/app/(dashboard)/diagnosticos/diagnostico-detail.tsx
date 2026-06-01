@@ -7,20 +7,26 @@ import { toast } from 'sonner';
 import {
   X, CheckCircle2, XCircle, Send, ArrowRight,
   Ticket, Monitor, User, Stethoscope, Wrench,
-  Clock, DollarSign, FileText, AlertTriangle, Loader2,
+  Clock, DollarSign, FileText, AlertTriangle,
+  Loader2, Mail, Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /* ─── Status config ──────────────────────────────────────── */
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
-  DRAFT:          { label: 'Borrador',          color: 'text-gray-600',    bg: 'bg-gray-100',    icon: FileText      },
-  SENT:           { label: 'Enviado',            color: 'text-blue-700',   bg: 'bg-blue-100',    icon: Send          },
-  APPROVED:       { label: 'Aprobado',           color: 'text-emerald-700',bg: 'bg-emerald-100', icon: CheckCircle2  },
-  REJECTED:       { label: 'No aprobado',        color: 'text-red-700',    bg: 'bg-red-100',     icon: XCircle       },
-  INFO_REQUESTED: { label: 'Más información',    color: 'text-amber-700',  bg: 'bg-amber-100',   icon: AlertTriangle },
+const STATUS_CONFIG: Record<string, {
+  label: string; color: string; bg: string; icon: React.ElementType;
+}> = {
+  DRAFT:          { label: 'Borrador',       color: 'text-gray-600',    bg: 'bg-gray-100',    icon: FileText      },
+  SENT:           { label: 'Enviado',        color: 'text-blue-700',    bg: 'bg-blue-100',    icon: Send          },
+  APPROVED:       { label: 'Aprobado',       color: 'text-emerald-700', bg: 'bg-emerald-100', icon: CheckCircle2  },
+  REJECTED:       { label: 'No aprobado',    color: 'text-red-700',     bg: 'bg-red-100',     icon: XCircle       },
+  INFO_REQUESTED: { label: 'Más info',       color: 'text-amber-700',   bg: 'bg-amber-100',   icon: AlertTriangle },
+  COMPLETED:      { label: 'Completado',     color: 'text-purple-700',  bg: 'bg-purple-100',  icon: CheckCircle2  },
 };
 
-function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string }) {
+function InfoRow({ icon: Icon, label, value }: {
+  icon: React.ElementType; label: string; value?: string;
+}) {
   if (!value) return null;
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-border/50 last:border-0">
@@ -35,7 +41,105 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
   );
 }
 
-/* ─── Props ─────────────────────────────────────────────── */
+/* ─── Función de impresión / descarga ────────────────────── */
+function printDiagnosis(diag: any) {
+  const win = window.open('', '_blank', 'width=800,height=700');
+  if (!win) { toast.error('Activa las ventanas emergentes para descargar'); return; }
+
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  win.document.write(`
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="UTF-8"/>
+<title>Diagnóstico ${diag.diagnosisNumber}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #1e293b; padding: 32px; }
+  .header { border-bottom: 3px solid #0f766e; padding-bottom: 16px; margin-bottom: 24px; }
+  .header h1 { font-size: 22px; color: #0f766e; }
+  .header p  { color: #64748b; font-size: 13px; margin-top: 4px; }
+  .badge { display: inline-block; background: #f0fdf4; border: 1px solid #86efac;
+    color: #15803d; font-weight: 700; padding: 3px 10px; border-radius: 20px; font-size: 12px; }
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #64748b; margin-bottom: 8px; }
+  .field { background: #f8fafc; border-left: 3px solid #0f766e;
+    padding: 10px 14px; border-radius: 0 6px 6px 0; margin-bottom: 8px; line-height: 1.6; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cost { background: #f0fdf4; border: 1px solid #86efac; padding: 12px; border-radius: 8px; }
+  .cost strong { font-size: 18px; color: #15803d; }
+  .footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 16px;
+    color: #94a3b8; font-size: 11px; text-align: center; }
+  @media print { body { padding: 0; } }
+</style>
+</head><body>
+<div class="header">
+  <h1>🔬 Diagnóstico Técnico</h1>
+  <p>GX Soporte · ${fmt(diag.createdAt)}</p>
+</div>
+
+<div class="section">
+  <span class="badge">${diag.diagnosisNumber}</span>
+  &nbsp;&nbsp;Ticket: <strong>${diag.ticket?.ticketNumber ?? '—'}</strong>
+  &nbsp;|&nbsp;Estado: <strong>${STATUS_CONFIG[diag.status]?.label ?? diag.status}</strong>
+</div>
+
+<div class="grid" style="margin-bottom:20px;">
+  <div><span class="section-title">Cliente</span>
+    <p>${diag.client?.companyName ?? '—'}</p></div>
+  <div><span class="section-title">Equipo</span>
+    <p>${[diag.asset?.brand, diag.asset?.model, diag.asset?.serial].filter(Boolean).join(' — ')}</p></div>
+  <div><span class="section-title">Técnico</span>
+    <p>${diag.technician?.name ?? '—'}</p></div>
+  <div><span class="section-title">Fecha</span>
+    <p>${fmt(diag.createdAt)}</p></div>
+</div>
+
+${diag.description ? `<div class="section">
+  <div class="section-title">Descripción del problema</div>
+  <div class="field">${diag.description}</div>
+</div>` : ''}
+
+${diag.problemCause ? `<div class="section">
+  <div class="section-title">Causa identificada</div>
+  <div class="field">${diag.problemCause}</div>
+</div>` : ''}
+
+${diag.recommendation ? `<div class="section">
+  <div class="section-title">Recomendación</div>
+  <div class="field">${diag.recommendation}</div>
+</div>` : ''}
+
+${diag.technicianNotes ? `<div class="section">
+  <div class="section-title">Notas del técnico</div>
+  <div class="field">${diag.technicianNotes}</div>
+</div>` : ''}
+
+<div class="grid">
+  ${diag.estimatedCost ? `<div class="cost">
+    <div class="section-title">Costo estimado</div>
+    <strong>$${Number(diag.estimatedCost).toLocaleString('es-CO')}</strong>
+  </div>` : ''}
+  ${diag.estimatedTime ? `<div class="cost">
+    <div class="section-title">Tiempo estimado</div>
+    <strong>${diag.estimatedTime}</strong>
+  </div>` : ''}
+</div>
+
+<p style="margin-top:20px;"><strong>¿Requiere reparación?</strong> ${diag.requiresRepair ? 'Sí' : 'No'}</p>
+
+<div class="footer">
+  GX Soporte · Documento generado el ${fmt(new Date().toISOString())}
+  <br/>Este diagnóstico es de carácter técnico y su aprobación autoriza el inicio de la reparación.
+</div>
+</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 500);
+}
+
+/* ─── Componente principal ───────────────────────────────── */
 interface DiagnosticoDetailProps {
   diagnosis: any;
   userRole: string;
@@ -53,11 +157,11 @@ export function DiagnosticoDetail({
   const [diag, setDiag] = useState(initialDiag);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const canApproveReject = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'CLIENT'].includes(userRole);
-  const canSend          = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'TECHNICIAN'].includes(userRole);
-  const canSolution      = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'TECHNICIAN'].includes(userRole);
+  const canManage      = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'TECHNICIAN'].includes(userRole);
+  const canApprove     = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'CLIENT'].includes(userRole);
+  const canSolution    = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'TECHNICIAN'].includes(userRole);
 
-  const cfg = STATUS_CONFIG[diag.status] ?? STATUS_CONFIG.DRAFT;
+  const cfg        = STATUS_CONFIG[diag.status] ?? STATUS_CONFIG.DRAFT;
   const StatusIcon = cfg.icon;
 
   const changeStatus = async (status: string) => {
@@ -67,12 +171,27 @@ export function DiagnosticoDetail({
       setDiag((prev: any) => ({ ...prev, status, ...data.data }));
       qc.invalidateQueries({ queryKey: ['diagnoses'] });
       toast.success(
-        status === 'APPROVED'  ? '✅ Diagnóstico aprobado — ya puede crear la solución' :
+        status === 'APPROVED'  ? '✅ Diagnóstico aprobado' :
         status === 'REJECTED'  ? 'Diagnóstico marcado como no aprobado' :
-        status === 'SENT'      ? 'Enviado para aprobación' : 'Estado actualizado'
+        status === 'COMPLETED' ? '✅ Diagnóstico completado — ticket archivado' :
+        'Estado actualizado'
       );
     } catch (e: any) {
       toast.error(e.response?.data?.error || 'Error al actualizar');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const sendEmail = async () => {
+    setLoading('email');
+    try {
+      const { data } = await axios.post(`/api/diagnosticos/${diag.id}/send-email`);
+      setDiag((prev: any) => ({ ...prev, status: 'SENT' }));
+      qc.invalidateQueries({ queryKey: ['diagnoses'] });
+      toast.success(`✉️ Diagnóstico enviado a ${data.data?.email}`);
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || 'Error al enviar correo');
     } finally {
       setLoading(null);
     }
@@ -89,7 +208,7 @@ export function DiagnosticoDetail({
               <Stethoscope className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-base font-bold font-mono">{diag.diagnosisNumber}</span>
                 <span className={cn('flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>
                   <StatusIcon className="w-3 h-3" />
@@ -97,19 +216,32 @@ export function DiagnosticoDetail({
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {new Date(diag.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}
+                {new Date(diag.createdAt).toLocaleDateString('es-CO', {
+                  day: '2-digit', month: 'long', year: 'numeric',
+                })}
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-muted transition-colors">
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Descargar / Imprimir */}
+            <button
+              onClick={() => printDiagnosis(diag)}
+              className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors font-medium"
+              title="Descargar / Imprimir"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Descargar
+            </button>
+            <button onClick={onClose} className="p-2 rounded-xl hover:bg-muted transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         {/* ── Contenido scrollable ── */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
-          {/* Info resumida */}
+          {/* Resumen en tarjetas */}
           <div className="grid grid-cols-3 gap-3">
             {[
               { icon: Ticket,  label: 'Ticket',  value: diag.ticket?.ticketNumber },
@@ -126,12 +258,12 @@ export function DiagnosticoDetail({
             ) : null)}
           </div>
 
-          {/* Descripción del problema */}
-          <div className="rounded-xl border border-border p-4 space-y-1">
-            <InfoRow icon={FileText}       label="Descripción del problema"  value={diag.description}     />
-            <InfoRow icon={AlertTriangle}  label="Causa identificada"        value={diag.problemCause}    />
-            <InfoRow icon={CheckCircle2}   label="Recomendación"             value={diag.recommendation}  />
-            <InfoRow icon={FileText}       label="Notas del técnico"         value={diag.technicianNotes} />
+          {/* Contenido del diagnóstico */}
+          <div className="rounded-xl border border-border p-4 space-y-0">
+            <InfoRow icon={FileText}      label="Descripción del problema" value={diag.description}     />
+            <InfoRow icon={AlertTriangle} label="Causa identificada"       value={diag.problemCause}    />
+            <InfoRow icon={CheckCircle2}  label="Recomendación"            value={diag.recommendation}  />
+            <InfoRow icon={FileText}      label="Notas del técnico"        value={diag.technicianNotes} />
           </div>
 
           {/* Estimados */}
@@ -173,69 +305,85 @@ export function DiagnosticoDetail({
 
           {/* Técnico */}
           {diag.technician?.name && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
               <User className="w-4 h-4" />
-              <span>Técnico: <strong className="text-foreground">{diag.technician.name}</strong></span>
-            </div>
+              Técnico: <strong className="text-foreground">{diag.technician.name}</strong>
+            </p>
           )}
 
           {/* Soluciones vinculadas */}
           {diag.solutions?.length > 0 && (
-            <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 rounded-xl p-3">
-              <p className="text-xs font-semibold text-emerald-700 mb-1.5">Soluciones vinculadas</p>
+            <div className="bg-purple-50 dark:bg-purple-500/10 border border-purple-200 rounded-xl p-3">
+              <p className="text-xs font-semibold text-purple-700 mb-1.5">✅ Solución creada</p>
               {diag.solutions.map((s: any) => (
-                <p key={s.id} className="text-sm font-mono text-emerald-800">{s.solutionNumber}</p>
+                <p key={s.id} className="text-sm font-mono text-purple-800">{s.solutionNumber}</p>
               ))}
             </div>
           )}
         </div>
 
         {/* ── Acciones (footer) ── */}
-        <div className="border-t border-border p-4 flex-shrink-0">
+        <div className="border-t border-border p-4 flex-shrink-0 space-y-3">
 
-          {/* DRAFT → Enviar para aprobación */}
-          {diag.status === 'DRAFT' && canSend && (
+          {/* DRAFT → Descargar + Enviar al cliente → pasa a ENVIADO */}
+          {diag.status === 'DRAFT' && canManage && (
             <div className="flex gap-3">
-              <button onClick={onClose} className="flex-1 border border-border py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
-                Cerrar
+              <button
+                onClick={() => printDiagnosis(diag)}
+                className="flex items-center justify-center gap-2 border border-border px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Descargar
               </button>
               <button
-                onClick={() => changeStatus('SENT')}
+                onClick={sendEmail}
                 disabled={!!loading}
                 className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
               >
-                {loading === 'SENT' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                Enviar para aprobación
+                {loading === 'email'
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <Mail className="w-4 h-4" />}
+                Enviar al cliente
               </button>
             </div>
           )}
 
-          {/* SENT → Aprobar / No aprobar */}
-          {diag.status === 'SENT' && canApproveReject && (
-            <div className="flex gap-3">
+          {/* SENT → Descargar + Aprobar / No aprobar (admin, coordinador, CLIENTE) */}
+          {diag.status === 'SENT' && canApprove && (
+            <div className="space-y-2">
               <button
-                onClick={() => changeStatus('REJECTED')}
-                disabled={!!loading}
-                className="flex-1 border border-red-300 text-red-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-50 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                onClick={() => printDiagnosis(diag)}
+                className="w-full flex items-center justify-center gap-2 border border-border py-2 rounded-xl text-sm font-medium hover:bg-muted transition-colors"
               >
-                {loading === 'REJECTED' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
-                No aprobar
+                <Download className="w-4 h-4" />
+                Descargar diagnóstico
               </button>
-              <button
-                onClick={() => changeStatus('APPROVED')}
-                disabled={!!loading}
-                className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-              >
-                {loading === 'APPROVED' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                Aprobar
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => changeStatus('REJECTED')}
+                  disabled={!!loading}
+                  className="flex-1 border border-red-300 text-red-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-50 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                >
+                  {loading === 'REJECTED' ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                  No aprobar
+                </button>
+                <button
+                  onClick={() => changeStatus('APPROVED')}
+                  disabled={!!loading}
+                  className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                >
+                  {loading === 'APPROVED' ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  Aprobar
+                </button>
+              </div>
             </div>
           )}
 
           {/* APPROVED → Crear solución */}
           {diag.status === 'APPROVED' && canSolution && !diag.solutions?.length && (
             <div className="flex gap-3">
-              <button onClick={onClose} className="flex-1 border border-border py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
+              <button onClick={onClose}
+                className="flex-1 border border-border py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
                 Cerrar
               </button>
               <button
@@ -248,9 +396,12 @@ export function DiagnosticoDetail({
             </div>
           )}
 
-          {/* REJECTED / ya tiene solución / APPROVED con solución */}
-          {(diag.status === 'REJECTED' || (diag.status === 'APPROVED' && diag.solutions?.length > 0) || diag.status === 'INFO_REQUESTED') && (
-            <button onClick={onClose} className="w-full border border-border py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
+          {/* COMPLETED / REJECTED / APPROVED con solución → solo cerrar */}
+          {(diag.status === 'COMPLETED' ||
+            diag.status === 'REJECTED' ||
+            (diag.status === 'APPROVED' && diag.solutions?.length > 0)) && (
+            <button onClick={onClose}
+              className="w-full border border-border py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors">
               Cerrar
             </button>
           )}

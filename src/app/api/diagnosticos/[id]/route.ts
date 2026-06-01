@@ -13,13 +13,14 @@ const updateSchema = z.object({
   estimatedCost: z.number().min(0).nullable().optional(),
   estimatedTime: z.string().optional(),
   technicianNotes: z.string().optional(),
-  status: z.enum(['DRAFT', 'SENT', 'APPROVED', 'REJECTED', 'INFO_REQUESTED']).optional(),
+  status: z.enum(['DRAFT', 'SENT', 'APPROVED', 'REJECTED', 'INFO_REQUESTED', 'COMPLETED']).optional(),
 });
 
 const STATUS_TICKET_MAP: Record<string, string> = {
-  SENT: 'DIAGNOSIS_SENT',
-  APPROVED: 'REPAIR_APPROVED',
-  REJECTED: 'REPAIR_REJECTED',
+  SENT:      'DIAGNOSIS_SENT',
+  APPROVED:  'REPAIR_APPROVED',
+  REJECTED:  'REPAIR_REJECTED',
+  COMPLETED: 'ARCHIVED',       // ticket se archiva al completar el diagnóstico
 };
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -52,23 +53,34 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const filter = getCompanyFilter(session);
     const companyId = filter.companyId ?? session.user.companyId ?? '__NO_COMPANY__';
 
-    // CLIENT can only APPROVE or REJECT
+    const body = await req.json();
+
+    // CLIENT can only APPROVE or REJECT, and only their own diagnoses
     if (session.user.role === 'CLIENT') {
-      const body = await req.json();
       if (!['APPROVED', 'REJECTED', 'INFO_REQUESTED'].includes(body.status)) {
         return apiError('Sin permisos para esta acción', 403);
       }
+      // Validate the diagnosis belongs to this client (matched by email)
+      const clientRecord = await db.client.findFirst({
+        where: { email: session.user.email },
+        select: { id: true },
+      });
+      const diagCheck = await db.diagnosis.findFirst({
+        where: { id: params.id, clientId: clientRecord?.id ?? '__NO_CLIENT__' },
+      });
+      if (!diagCheck) return apiError('Diagnóstico no encontrado', 404);
     }
 
     const existing = await db.diagnosis.findFirst({ where: { id: params.id, ...filter } });
     if (!existing) return apiError('Diagnóstico no encontrado', 404);
 
-    const data = updateSchema.parse(await req.json());
+    const data = updateSchema.parse(body);
     const updateData: any = { ...data };
 
-    if (data.status === 'SENT') updateData.sentAt = new Date();
-    if (data.status === 'APPROVED') updateData.approvedAt = new Date();
-    if (data.status === 'REJECTED') updateData.rejectedAt = new Date();
+    if (data.status === 'SENT')      updateData.sentAt     = new Date();
+    if (data.status === 'APPROVED')  updateData.approvedAt = new Date();
+    if (data.status === 'REJECTED')  updateData.rejectedAt = new Date();
+    if (data.status === 'COMPLETED') updateData.completedAt = new Date();
 
     const diagnosis = await db.diagnosis.update({
       where: { id: params.id },

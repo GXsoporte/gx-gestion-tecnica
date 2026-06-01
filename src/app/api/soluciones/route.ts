@@ -91,10 +91,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Actualizar ticket a IN_REPAIR
+    // Marcar diagnóstico como COMPLETADO y archivar el ticket
+    await db.diagnosis.update({
+      where: { id: data.diagnosisId },
+      data:  { status: 'COMPLETED', completedAt: new Date() },
+    });
+
     await db.ticket.update({
       where: { id: data.ticketId },
-      data: { status: 'IN_REPAIR' },
+      data:  { status: 'ARCHIVED' },
     });
 
     await logAudit('CREATE', 'Solution', solution.id, companyId, session.user.id);

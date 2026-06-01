@@ -35,6 +35,14 @@ export async function GET(req: NextRequest) {
     if (technicianId) where.technicianId = technicianId;
     // Technician only sees their own
     if (session.user.role === 'TECHNICIAN') where.technicianId = session.user.id;
+    // CLIENT only sees diagnoses linked to their own client record (matched by email)
+    if (session.user.role === 'CLIENT') {
+      const clientRecord = await db.client.findFirst({
+        where: { email: session.user.email, ...filter },
+        select: { id: true },
+      });
+      where.clientId = clientRecord?.id ?? '__NO_CLIENT__';
+    }
 
     const diagnoses = await db.diagnosis.findMany({
       where,

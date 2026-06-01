@@ -23,6 +23,14 @@ export default withAuth(
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
+    // CLIENT role can only access the portal, not the internal dashboard
+    const internalPaths = ['/dashboard', '/clientes', '/actividades', '/tickets',
+      '/inventario', '/mantenimientos', '/diagnostico', '/diagnosticos',
+      '/reportes', '/documentos', '/configuracion'];
+    if (role === 'CLIENT' && internalPaths.some(p => pathname.startsWith(p))) {
+      return NextResponse.redirect(new URL('/portal/diagnosticos', req.url));
+    }
+
     return NextResponse.next();
   },
   {
@@ -41,9 +49,11 @@ export const config = {
     '/inventario/:path*',
     '/mantenimientos/:path*',
     '/diagnostico/:path*',
+    '/diagnosticos/:path*',
     '/reportes/:path*',
     '/documentos/:path*',
     '/configuracion/:path*',
     '/super-admin/:path*',
+    '/portal/:path*',
   ],
 };

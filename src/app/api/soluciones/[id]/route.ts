@@ -61,11 +61,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       data: updateData,
     });
 
-    // Sincronizar ticket
+    // Cuando la solución se completa → diagnóstico COMPLETED → ticket ARCHIVED
     if (data.status === 'COMPLETED') {
+      if (existing.diagnosisId) {
+        await db.diagnosis.update({
+          where: { id: existing.diagnosisId },
+          data: { status: 'COMPLETED', updatedAt: new Date() },
+        }).catch(() => {});
+      }
       await db.ticket.update({
         where: { id: existing.ticketId },
-        data: { status: 'REPAIR_DONE' },
+        data: { status: 'ARCHIVED' },
       });
     }
     if (data.deliveryStatus === 'DELIVERED') {
