@@ -116,8 +116,16 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     const filter = getCompanyFilter(session);
     const companyId = filter.companyId ?? session.user.companyId ?? '__NO_COMPANY__';
 
-    const existing = await db.diagnosis.findFirst({ where: { id: params.id, ...filter } });
+    const existing = await db.diagnosis.findFirst({
+      where: { id: params.id, ...filter },
+      include: { solutions: { select: { id: true } } },
+    });
     if (!existing) return apiError('Diagnóstico no encontrado', 404);
+
+    // Eliminar soluciones vinculadas primero (y sus adjuntos por cascade)
+    if (existing.solutions?.length) {
+      await db.solution.deleteMany({ where: { diagnosisId: params.id } });
+    }
 
     // Revertir ticket al estado anterior
     if (existing.ticketId) {
