@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit } from '@/lib/api-helpers';
+import bcrypt from 'bcryptjs';
+import { notifyClientCredentials } from '@/lib/notifications';
 import { z } from 'zod';
 
 const db = prisma as any;
@@ -87,6 +89,31 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         where: { id: { in: assetIds } },
         data:  { clientUserId: user.id },
       });
+    }
+
+    // Auto-crear User para acceso al portal si tiene email1
+    if (data.email1) {
+      try {
+        const existing = await prisma.user.findUnique({ where: { email: data.email1 } });
+        if (!existing) {
+          const rawPassword = Math.random().toString(36).slice(2, 10);
+          const hashedPassword = await bcrypt.hash(rawPassword, 10);
+          await prisma.user.create({
+            data: {
+              name: data.name,
+              email: data.email1,
+              password: hashedPassword,
+              role: 'CLIENT',
+              companyId: client.companyId,
+              isActive: true,
+            },
+          });
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+          await notifyClientCredentials({ name: data.name, email: data.email1, rawPassword, appUrl });
+        }
+      } catch (userErr) {
+        console.warn('[clientUser POST] No se pudo crear el User portal:', userErr);
+      }
     }
 
     await logAudit('CREATE', 'ClientUser', user.id, client.companyId, session.user.id);

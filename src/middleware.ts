@@ -28,7 +28,7 @@ export default withAuth(
       '/inventario', '/mantenimientos', '/diagnostico', '/diagnosticos',
       '/reportes', '/documentos', '/configuracion'];
     if (role === 'CLIENT' && internalPaths.some(p => pathname.startsWith(p))) {
-      return NextResponse.redirect(new URL('/portal/diagnosticos', req.url));
+      return NextResponse.redirect(new URL('/portal', req.url));
     }
 
     return NextResponse.next();
@@ -55,5 +55,8 @@ export const config = {
     '/configuracion/:path*',
     '/super-admin/:path*',
     '/portal/:path*',
+    '/portal/tickets/:path*',
+    '/portal/inventario/:path*',
+    '/portal/soluciones/:path*',
   ],
 };

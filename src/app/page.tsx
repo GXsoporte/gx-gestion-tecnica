@@ -7,7 +7,7 @@ export default async function HomePage() {
 
   if (session) {
     if ((session.user as any).role === 'CLIENT') {
-      redirect('/portal/diagnosticos');
+      redirect('/portal');
     }
     redirect('/dashboard');
   } else {
