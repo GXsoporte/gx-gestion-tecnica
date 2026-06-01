@@ -13,9 +13,10 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Contraseña', type: 'password' },
+        otp: { label: 'Código OTP', type: 'text' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.email) {
           throw new Error('Credenciales requeridas');
         }
 
@@ -24,15 +25,55 @@ export const authOptions: NextAuthOptions = {
           include: { company: true },
         });
 
-        if (!user || !user.password) {
-          throw new Error('Usuario no encontrado');
+        if (!user) throw new Error('Usuario no encontrado');
+        if (!user.isActive) throw new Error('Usuario desactivado. Contacte al administrador.');
+
+        // Login por OTP (clientes)
+        if (credentials.otp && !credentials.password) {
+          if (user.role !== 'CLIENT') {
+            throw new Error('El acceso por código solo está disponible para clientes');
+          }
+          const token = await prisma.verificationToken.findFirst({
+            where: {
+              identifier: credentials.email,
+              token: credentials.otp,
+              expires: { gt: new Date() },
+            },
+          });
+          if (!token) throw new Error('Código inválido o expirado');
+          // Borrar token usado
+          await prisma.verificationToken.deleteMany({ where: { identifier: credentials.email } });
+
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLogin: new Date() },
+          });
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            role: user.role as UserRole,
+            companyId: user.companyId,
+            companyName: user.company?.name ?? null,
+            companySlug: user.company?.slug ?? null,
+          };
         }
 
-        if (!user.isActive) {
-          throw new Error('Usuario desactivado. Contacte al administrador.');
+        // Login por contraseña (staff)
+        if (user.role === 'CLIENT' && !credentials.otp) {
+          throw new Error('Los clientes deben usar el acceso por código');
         }
 
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        if (!credentials.password) {
+          throw new Error('Credenciales requeridas');
+        }
+
+        // Para staff (no CLIENT), password es requerida
+        if (user.role !== 'CLIENT' && !user.password) throw new Error('Usuario sin contraseña configurada');
+
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password!);
 
         if (!isPasswordValid) {
           throw new Error('Contraseña incorrecta');

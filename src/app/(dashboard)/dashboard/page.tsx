@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { DashboardClient } from './dashboard-client';
+import { ClientDashboard } from './client-dashboard';
 
 export const metadata = { title: 'Dashboard' };
 
@@ -115,9 +116,88 @@ async function getDashboardData(companyId: string, role: string) {
   };
 }
 
+async function getClientDashboardData(userEmail: string, companyId: string) {
+  // Busca el Client cuyo email = userEmail
+  let clientId: string | null = null;
+
+  const clientByEmail = await prisma.client.findFirst({
+    where: { email: userEmail, companyId },
+  });
+
+  if (clientByEmail) {
+    clientId = clientByEmail.id;
+  } else {
+    // Busca ClientUser donde email1 = userEmail
+    const clientUser = await prisma.clientUser.findFirst({
+      where: { email1: userEmail, companyId },
+    });
+    if (clientUser) {
+      clientId = clientUser.clientId;
+    }
+  }
+
+  if (!clientId) {
+    return {
+      totalTickets: 0,
+      openTickets: 0,
+      pendingDiagnoses: 0,
+      recentTickets: [],
+      pendingDiagnosesList: [],
+    };
+  }
+
+  const [totalTickets, openTickets, pendingDiagnoses, recentTickets, pendingDiagnosesList] =
+    await Promise.all([
+      prisma.ticket.count({ where: { clientId } }),
+      prisma.ticket.count({ where: { clientId, status: { in: ['OPEN', 'IN_PROGRESS'] } } }),
+      prisma.diagnosis.count({ where: { clientId, status: 'SENT' } }),
+      prisma.ticket.findMany({
+        where: { clientId },
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { assignedTo: { select: { name: true } } },
+      }),
+      prisma.diagnosis.findMany({
+        where: { clientId, status: 'SENT' },
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { ticket: { select: { subject: true } } },
+      }),
+    ]);
+
+  return {
+    totalTickets,
+    openTickets,
+    pendingDiagnoses,
+    recentTickets: recentTickets.map((t) => ({
+      ...t,
+      createdAt: t.createdAt.toISOString(),
+      updatedAt: t.updatedAt.toISOString(),
+      closedAt: t.closedAt?.toISOString() || null,
+      dueDate: t.dueDate?.toISOString() || null,
+    })),
+    pendingDiagnosesList: pendingDiagnosesList.map((d) => ({
+      ...d,
+      createdAt: d.createdAt.toISOString(),
+      updatedAt: d.updatedAt.toISOString(),
+      sentAt: d.sentAt?.toISOString() || null,
+      approvedAt: d.approvedAt?.toISOString() || null,
+      rejectedAt: d.rejectedAt?.toISOString() || null,
+    })),
+  };
+}
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session) return null;
+
+  if (session.user.role === 'CLIENT') {
+    const clientData = await getClientDashboardData(
+      session.user.email!,
+      session.user.companyId || ''
+    );
+    return <ClientDashboard data={clientData} session={session} />;
+  }
 
   const data = await getDashboardData(
     session.user.companyId || '',

@@ -513,3 +513,85 @@ Ver en el sistema: ${appUrl}/tickets
     // No lanzamos el error — la creación del ticket no debe fallar por esto
   }
 }
+
+// ─── Email: OTP de acceso para clientes ─────────────────────────────────────
+export async function notifyClientOTP(params: {
+  email: string;
+  name: string;
+  otp: string;
+  appUrl: string;
+}) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn('[notifications] SMTP no configurado — email omitido');
+    return;
+  }
+
+  const html = `
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0"
+  style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+
+  <!-- Header -->
+  <tr><td style="background:#1e293b;padding:28px 32px;">
+    <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">Tu código de acceso</h1>
+    <p style="margin:6px 0 0;color:#94a3b8;font-size:14px;">GX Soporte</p>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="padding:32px;">
+    <p style="margin:0 0 20px;font-size:15px;color:#1e293b;">Hola, <strong>${params.name}</strong></p>
+    <p style="margin:0 0 24px;font-size:14px;color:#475569;line-height:1.6;">
+      Usa el siguiente código para ingresar al portal de soporte:
+    </p>
+
+    <div style="text-align:center;margin:32px 0;">
+      <div style="display:inline-block;background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:20px 40px;">
+        <span style="font-size:36px;font-weight:700;color:#60a5fa;letter-spacing:8px;font-family:monospace;">${params.otp}</span>
+      </div>
+    </div>
+
+    <p style="margin:0 0 24px;font-size:13px;color:#64748b;text-align:center;">
+      Este código expira en <strong>15 minutos</strong>. No lo compartas con nadie.
+    </p>
+
+    <div style="text-align:center;margin-bottom:24px;">
+      <a href="${params.appUrl}/login"
+         style="display:inline-block;background:#1e293b;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:700;font-size:14px;">
+        Ir al portal
+      </a>
+    </div>
+
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">
+      Si no solicitaste este código, ignora este mensaje.<br/>
+      Este es un mensaje automático — no responda a este correo.
+    </p>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">GX Soporte · ${new Date().getFullYear()}</p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`;
+
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || '';
+  try {
+    await transporter.sendMail({
+      from: `"GX Soporte" <${from}>`,
+      to: params.email,
+      subject: 'Tu código de acceso — GX Soporte',
+      html,
+    });
+    console.log(`[notifications] OTP enviado a ${params.email}`);
+  } catch (err) {
+    console.error('[notifications] Error al enviar OTP:', err);
+    throw err;
+  }
+}
