@@ -91,12 +91,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       },
     });
 
-    // Sincronizar estado del ticket
-    if (data.status && STATUS_TICKET_MAP[data.status]) {
+    // Sincronizar estado del ticket (no bloquea si falla)
+    if (data.status && STATUS_TICKET_MAP[data.status] && existing.ticketId) {
       await db.ticket.update({
         where: { id: existing.ticketId },
         data: { status: STATUS_TICKET_MAP[data.status] },
-      });
+      }).catch(() => {});
     }
 
     await logAudit('UPDATE', 'Diagnosis', params.id, companyId, session.user.id);
