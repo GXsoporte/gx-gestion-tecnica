@@ -116,18 +116,24 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     const filter = getCompanyFilter(session);
     const companyId = filter.companyId ?? session.user.companyId ?? '__NO_COMPANY__';
 
-    const existing = await db.diagnosis.findFirst({
-      where: { id: params.id, ...filter },
-      include: { solutions: { select: { id: true } } },
-    });
+    const existing = await db.diagnosis.findFirst({ where: { id: params.id, ...filter } });
     if (!existing) return apiError('Diagnóstico no encontrado', 404);
 
-    // Eliminar soluciones vinculadas primero (y sus adjuntos por cascade)
-    if (existing.solutions?.length) {
+    // 1. Adjuntos de las soluciones vinculadas
+    const solutions = await db.solution.findMany({
+      where: { diagnosisId: params.id },
+      select: { id: true },
+    });
+    if (solutions.length) {
+      const solIds = solutions.map((s: any) => s.id);
+      await db.attachment.deleteMany({ where: { solutionId: { in: solIds } } });
       await db.solution.deleteMany({ where: { diagnosisId: params.id } });
     }
 
-    // Revertir ticket al estado anterior
+    // 2. Adjuntos del propio diagnóstico
+    await db.attachment.deleteMany({ where: { diagnosisId: params.id } });
+
+    // 3. Revertir ticket
     if (existing.ticketId) {
       await db.ticket.update({
         where: { id: existing.ticketId },
@@ -135,6 +141,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
       }).catch(() => {});
     }
 
+    // 4. Eliminar el diagnóstico
     await db.diagnosis.delete({ where: { id: params.id } });
     await logAudit('DELETE', 'Diagnosis', params.id, companyId, session.user.id);
     return apiResponse({ deleted: true });
