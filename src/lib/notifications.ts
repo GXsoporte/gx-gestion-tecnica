@@ -153,6 +153,110 @@ export async function notifyDiagnosisToClient(params: {
   }
 }
 
+// ─── Email: Solución completada al cliente ───────────────────────────────────
+export async function notifySolutionToClient(params: {
+  solutionNumber: string;
+  clientName: string;
+  clientEmail: string;
+  technicianName: string;
+  ticketNumber: string;
+  ticketSubject: string;
+  assetInfo: string;
+  activitiesDone?: string;
+  finalResult?: string;
+  recommendations?: string;
+  appUrl: string;
+}) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.warn('[notifications] SMTP no configurado — email omitido');
+    return;
+  }
+
+  const html = `
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0"
+  style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);">
+
+  <!-- Header -->
+  <tr><td style="background:#16a34a;padding:28px 32px;">
+    <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">🔧 Solución Técnica Completada</h1>
+    <p style="margin:6px 0 0;color:#bbf7d0;font-size:14px;">${params.clientName}</p>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="padding:32px;">
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px 16px;margin-bottom:24px;">
+      <span style="color:#15803d;font-weight:700;font-size:15px;">${params.solutionNumber}</span>
+      <span style="color:#64748b;font-size:13px;margin-left:12px;">Ticket: ${params.ticketNumber}</span>
+    </div>
+
+    <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1e293b;">${params.ticketSubject}</p>
+    <p style="margin:0 0 16px;font-size:13px;color:#64748b;">Equipo: <strong>${params.assetInfo}</strong> · Técnico: <strong>${params.technicianName}</strong></p>
+
+    <p style="margin:0 0 24px;font-size:14px;color:#16a34a;font-weight:600;">
+      Su equipo ha sido reparado. A continuación el resumen de la solución aplicada.
+    </p>
+
+    ${params.activitiesDone ? `
+    <div style="margin-bottom:20px;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Actividades realizadas</p>
+      <p style="margin:0;font-size:14px;color:#1e293b;line-height:1.6;background:#f8fafc;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 6px 6px 0;">${params.activitiesDone}</p>
+    </div>` : ''}
+
+    ${params.finalResult ? `
+    <div style="margin-bottom:20px;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Resultado final</p>
+      <p style="margin:0;font-size:14px;color:#1e293b;line-height:1.6;">${params.finalResult}</p>
+    </div>` : ''}
+
+    ${params.recommendations ? `
+    <div style="margin-bottom:24px;">
+      <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;">Recomendaciones</p>
+      <p style="margin:0;font-size:14px;color:#1e293b;line-height:1.6;">${params.recommendations}</p>
+    </div>` : ''}
+
+    <!-- CTA -->
+    <div style="text-align:center;margin-bottom:24px;">
+      <a href="${params.appUrl}/soluciones"
+         style="display:inline-block;background:#16a34a;color:#fff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:700;font-size:14px;">
+        Ver solución en el sistema
+      </a>
+    </div>
+
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">
+      Este es un mensaje automático — no responda a este correo.
+    </p>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+    <p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">GX Soporte · ${new Date().getFullYear()}</p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`;
+
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || '';
+  try {
+    await transporter.sendMail({
+      from: `"GX Soporte" <${from}>`,
+      to: params.clientEmail,
+      subject: `[Solución ${params.solutionNumber}] ${params.ticketSubject} — Su equipo ha sido reparado`,
+      html,
+    });
+    console.log(`[notifications] Solución ${params.solutionNumber} enviada a ${params.clientEmail}`);
+  } catch (err) {
+    console.error('[notifications] Error al enviar solución:', err);
+    throw err;
+  }
+}
+
 // ─── Email: Nuevo ticket ──────────────────────────────────────────────────────
 export async function notifyNewTicket(ticket: {
   ticketNumber: string;

@@ -75,6 +75,39 @@ export function generateNumber(prefix: string, count: number): string {
  * the actual maximum existing value — safe even when records have been deleted.
  * Using count() instead would produce duplicates if any record was previously removed.
  */
+export async function createTicketActivity(params: {
+  description: string;
+  ticketId: string;
+  clientId: string;
+  technicianId: string;
+  companyId: string;
+  createdById: string;
+  diagnosis?: string;
+  solution?: string;
+}) {
+  const activityNumber = await nextNumber(
+    'GX-ACT',
+    prisma.activity,
+    'activityNumber',
+    { companyId: params.companyId }
+  );
+  await prisma.activity.create({
+    data: {
+      activityNumber,
+      description:  params.description,
+      diagnosis:    params.diagnosis,
+      solution:     params.solution,
+      priority:     'MEDIUM',
+      status:       'COMPLETED',
+      clientId:     params.clientId,
+      technicianId: params.technicianId,
+      createdById:  params.createdById,
+      companyId:    params.companyId,
+      ticketId:     params.ticketId,
+    },
+  });
+}
+
 export async function nextNumber(
   prefix: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

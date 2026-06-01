@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber } from '@/lib/api-helpers';
+import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber, createTicketActivity } from '@/lib/api-helpers';
 import { z } from 'zod';
 
 const db = prisma as any;
@@ -90,6 +90,16 @@ export async function POST(req: NextRequest) {
     });
 
     await logAudit('CREATE', 'Diagnosis', diagnosis.id, companyId, session.user.id);
+
+    createTicketActivity({
+      description:  `Diagnóstico ${diagnosisNumber} creado`,
+      ticketId:     data.ticketId,
+      clientId:     data.clientId,
+      technicianId: session.user.id,
+      companyId,
+      createdById:  session.user.id,
+      diagnosis:    data.description,
+    }).catch(() => {});
 
     // Actualizar estado del ticket a IN_DIAGNOSIS cuando se crea un diagnóstico
     await db.ticket.update({

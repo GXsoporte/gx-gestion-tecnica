@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber } from '@/lib/api-helpers';
+import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber, createTicketActivity } from '@/lib/api-helpers';
 import { z } from 'zod';
 
 const db = prisma as any;
@@ -103,6 +103,17 @@ export async function POST(req: NextRequest) {
     });
 
     await logAudit('CREATE', 'Solution', solution.id, companyId, session.user.id);
+
+    createTicketActivity({
+      description:  `Solución ${solutionNumber} creada`,
+      ticketId:     data.ticketId,
+      clientId:     data.clientId,
+      technicianId: session.user.id,
+      companyId,
+      createdById:  session.user.id,
+      solution:     data.activitiesDone || '',
+    }).catch(() => {});
+
     return apiResponse(solution, 201);
   } catch (e: any) {
     if (e.name === 'ZodError') return apiError('Datos inválidos: ' + e.errors[0]?.message, 400);

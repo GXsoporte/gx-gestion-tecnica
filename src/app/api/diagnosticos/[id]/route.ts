@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit } from '@/lib/api-helpers';
+import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, createTicketActivity } from '@/lib/api-helpers';
 import { z } from 'zod';
 
 const db = prisma as any;
@@ -100,6 +100,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     await logAudit('UPDATE', 'Diagnosis', params.id, companyId, session.user.id);
+
+    if ((data.status === 'APPROVED' || data.status === 'REJECTED') && existing.ticketId && existing.clientId) {
+      createTicketActivity({
+        description:  data.status === 'APPROVED' ? 'Diagnóstico aprobado por el cliente' : 'Diagnóstico no aprobado',
+        ticketId:     existing.ticketId,
+        clientId:     existing.clientId,
+        technicianId: existing.technicianId ?? session.user.id,
+        companyId,
+        createdById:  session.user.id,
+      }).catch(() => {});
+    }
+
     return apiResponse(diagnosis);
   } catch (e: any) {
     if (e.name === 'ZodError') return apiError('Datos inválidos', 400);

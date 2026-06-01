@@ -10,6 +10,7 @@ import {
   Truck, AlertCircle, ChevronDown, Trash2,
 } from 'lucide-react';
 import { SolucionModal } from './solucion-modal';
+import { SolucionDetail } from './solucion-detail';
 
 const STATUS_LABELS: Record<string, string> = {
   IN_PROGRESS: 'En proceso',
@@ -44,6 +45,7 @@ export function SolucionesClient() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [detailSol, setDetailSol] = useState<any>(null);
 
   const role = session?.user?.role ?? '';
   const canCreate = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'TECHNICIAN', 'COORDINATOR'].includes(role);
@@ -231,6 +233,12 @@ export function SolucionesClient() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => setDetailSol(s)}
+                            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 flex items-center gap-1"
+                          >
+                            Ver
+                          </button>
                           {canCreate && s.status === 'IN_PROGRESS' && (
                             <button
                               onClick={() => handleStatusChange(s.id, 'status', 'COMPLETED')}
@@ -305,6 +313,14 @@ export function SolucionesClient() {
             qc.invalidateQueries({ queryKey: ['solutions'] });
             toast.success('Solución creada');
           }}
+        />
+      )}
+
+      {detailSol && (
+        <SolucionDetail
+          solution={detailSol}
+          userRole={role}
+          onClose={() => setDetailSol(null)}
         />
       )}
     </div>
