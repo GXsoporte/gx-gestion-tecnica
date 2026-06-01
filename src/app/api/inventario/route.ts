@@ -39,6 +39,16 @@ export async function GET(req: NextRequest) {
     if (status) where.status = status;
     if (type) where.type = type;
     if (clientId) where.clientId = clientId;
+
+    // CLIENT solo ve los activos asignados a su ClientUser
+    if (session.user.role === 'CLIENT') {
+      const cu = await (prisma as any).clientUser.findFirst({
+        where: { email1: session.user.email },
+        select: { id: true },
+      });
+      where.clientUserId = cu?.id ?? '__NO_USER__';
+    }
+
     if (search) {
       where.OR = [
         { assetNumber: { contains: search } },

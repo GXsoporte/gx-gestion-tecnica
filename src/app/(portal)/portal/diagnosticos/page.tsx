@@ -1,5 +1,2 @@
-import { PortalDiagnosticosClient } from './portal-diagnosticos-client';
-
-export default function PortalDiagnosticosPage() {
-  return <PortalDiagnosticosClient />;
-}
+import { DiagnosticosClient } from '@/app/(dashboard)/diagnosticos/diagnosticos-client';
+export default function PortalDiagnosticosPage() { return <DiagnosticosClient />; }

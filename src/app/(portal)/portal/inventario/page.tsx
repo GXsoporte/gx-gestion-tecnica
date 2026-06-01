@@ -1,5 +1,2 @@
-import { PortalInventarioClient } from './portal-inventario-client';
-
-export default function PortalInventarioPage() {
-  return <PortalInventarioClient />;
-}
+import { InventarioClient } from '@/app/(dashboard)/inventario/inventario-client';
+export default function PortalInventarioPage() { return <InventarioClient />; }

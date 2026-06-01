@@ -1,5 +1,2 @@
-import { PortalTicketsClient } from './portal-tickets-client';
-
-export default function PortalTicketsPage() {
-  return <PortalTicketsClient />;
-}
+import { TicketsClient } from '@/app/(dashboard)/tickets/tickets-client';
+export default function PortalTicketsPage() { return <TicketsClient />; }

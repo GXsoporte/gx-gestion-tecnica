@@ -35,6 +35,13 @@ export async function GET(req: NextRequest) {
     if (diagnosisId) where.diagnosisId = diagnosisId;
     if (status) where.status = status;
     if (session.user.role === 'TECHNICIAN') where.technicianId = session.user.id;
+    if (session.user.role === 'CLIENT') {
+      const client = await db.client.findFirst({
+        where: { email: session.user.email },
+        select: { id: true },
+      });
+      where.clientId = client?.id ?? '__NO_CLIENT__';
+    }
 
     const solutions = await db.solution.findMany({
       where,

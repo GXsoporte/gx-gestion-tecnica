@@ -12,8 +12,10 @@ export default async function PortalLayout({ children }: { children: React.React
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <PortalHeader userName={session.user.name ?? ''} />
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {children}
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
