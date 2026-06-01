@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber, createTicketActivity } from '@/lib/api-helpers';
+import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber, createTicketActivity, resolveClientId } from '@/lib/api-helpers';
 import { z } from 'zod';
 
 const db = prisma as any;
@@ -35,13 +35,9 @@ export async function GET(req: NextRequest) {
     if (technicianId) where.technicianId = technicianId;
     // Technician only sees their own
     if (session.user.role === 'TECHNICIAN') where.technicianId = session.user.id;
-    // CLIENT only sees diagnoses linked to their own client record (matched by email)
+    // CLIENT only sees diagnoses linked to their own client record
     if (session.user.role === 'CLIENT') {
-      const clientRecord = await db.client.findFirst({
-        where: { email: session.user.email, ...filter },
-        select: { id: true },
-      });
-      where.clientId = clientRecord?.id ?? '__NO_CLIENT__';
+      where.clientId = await resolveClientId(session.user.email!, session.user.companyId || undefined);
     }
 
     const diagnoses = await db.diagnosis.findMany({

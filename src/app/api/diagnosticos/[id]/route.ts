@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, createTicketActivity } from '@/lib/api-helpers';
+import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, createTicketActivity, resolveClientId } from '@/lib/api-helpers';
 import { z } from 'zod';
 
 const db = prisma as any;
@@ -60,13 +60,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       if (!['APPROVED', 'REJECTED', 'INFO_REQUESTED'].includes(body.status)) {
         return apiError('Sin permisos para esta acción', 403);
       }
-      // Validate the diagnosis belongs to this client (matched by email)
-      const clientRecord = await db.client.findFirst({
-        where: { email: session.user.email },
-        select: { id: true },
-      });
+      // Validate the diagnosis belongs to this client
+      const clientId = await resolveClientId(session.user.email!, session.user.companyId || undefined);
       const diagCheck = await db.diagnosis.findFirst({
-        where: { id: params.id, clientId: clientRecord?.id ?? '__NO_CLIENT__' },
+        where: { id: params.id, clientId },
       });
       if (!diagCheck) return apiError('Diagnóstico no encontrado', 404);
     }

@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber } from '@/lib/api-helpers';
+import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber, resolveClientId } from '@/lib/api-helpers';
 import { notifyNewTicket } from '@/lib/notifications';
 import { z } from 'zod';
 
@@ -50,10 +50,8 @@ export async function GET(req: NextRequest) {
     }
 
     if (session.user.role === 'CLIENT') {
-      const client = await prisma.client.findFirst({
-        where: { email: session.user.email, companyId: session.user.companyId || undefined },
-      });
-      if (client) where.clientId = client.id;
+      const clientId = await resolveClientId(session.user.email!, session.user.companyId || undefined);
+      where.clientId = clientId;
     }
 
     const tickets = await prisma.ticket.findMany({

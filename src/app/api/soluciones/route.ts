@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
-import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber, createTicketActivity } from '@/lib/api-helpers';
+import { requireAuth, getCompanyFilter, apiResponse, apiError, logAudit, nextNumber, createTicketActivity, resolveClientId } from '@/lib/api-helpers';
 import { z } from 'zod';
 
 const db = prisma as any;
@@ -36,11 +36,7 @@ export async function GET(req: NextRequest) {
     if (status) where.status = status;
     if (session.user.role === 'TECHNICIAN') where.technicianId = session.user.id;
     if (session.user.role === 'CLIENT') {
-      const client = await db.client.findFirst({
-        where: { email: session.user.email },
-        select: { id: true },
-      });
-      where.clientId = client?.id ?? '__NO_CLIENT__';
+      where.clientId = await resolveClientId(session.user.email!, session.user.companyId || undefined);
     }
 
     const solutions = await db.solution.findMany({

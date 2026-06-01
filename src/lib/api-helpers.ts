@@ -125,3 +125,21 @@ export async function nextNumber(
     : 0;
   return `${prefix}-${String(lastNum + 1).padStart(6, '0')}`;
 }
+
+/** Resuelve el clientId para un usuario con rol CLIENT.
+ *  Busca primero en Client.email, luego en ClientUser.email1 → clientId. */
+export async function resolveClientId(userEmail: string, companyId?: string): Promise<string> {
+  const db = prisma as any;
+  // 1. Client.email directo
+  const byEmail = await db.client.findFirst({
+    where: { email: userEmail, ...(companyId ? { companyId } : {}) },
+    select: { id: true },
+  });
+  if (byEmail) return byEmail.id;
+  // 2. ClientUser.email1 → clientId
+  const byUser = await db.clientUser.findFirst({
+    where: { email1: userEmail },
+    select: { clientId: true },
+  });
+  return byUser?.clientId ?? '__NO_CLIENT__';
+}
