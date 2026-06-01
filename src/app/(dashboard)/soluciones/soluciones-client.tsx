@@ -6,8 +6,8 @@ import { useSession } from 'next-auth/react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import {
-  Wrench, Plus, Search, CheckCircle2, XCircle, Clock,
-  Truck, AlertCircle, ChevronDown,
+  Wrench, Plus, Search, CheckCircle2, Clock,
+  Truck, AlertCircle, ChevronDown, Trash2,
 } from 'lucide-react';
 import { SolucionModal } from './solucion-modal';
 
@@ -45,9 +45,9 @@ export function SolucionesClient() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  const canCreate = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'TECHNICIAN', 'COORDINATOR'].includes(
-    session?.user?.role ?? ''
-  );
+  const role = session?.user?.role ?? '';
+  const canCreate = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'TECHNICIAN', 'COORDINATOR'].includes(role);
+  const canDelete = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR'].includes(role);
 
   const { data: solutions = [], isLoading } = useQuery({
     queryKey: ['solutions', statusFilter],
@@ -75,6 +75,17 @@ export function SolucionesClient() {
       qc.invalidateQueries({ queryKey: ['solutions'] });
     } catch (e: any) {
       toast.error(e.response?.data?.error || 'Error');
+    }
+  };
+
+  const handleDelete = async (id: string, num: string) => {
+    if (!confirm(`¿Eliminar la solución ${num}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await axios.delete(`/api/soluciones/${id}`);
+      toast.success(`Solución ${num} eliminada`);
+      qc.invalidateQueries({ queryKey: ['solutions'] });
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || 'Error al eliminar');
     }
   };
 
@@ -219,24 +230,35 @@ export function SolucionesClient() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {canCreate && s.status === 'IN_PROGRESS' && (
-                          <button
-                            onClick={() => handleStatusChange(s.id, 'status', 'COMPLETED')}
-                            title="Marcar como completada"
-                            className="px-2 py-1 text-xs bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 flex items-center gap-1"
-                          >
-                            <CheckCircle2 className="w-3 h-3" /> Completar
-                          </button>
-                        )}
-                        {canCreate && s.status === 'COMPLETED' && s.deliveryStatus === 'PENDING' && (
-                          <button
-                            onClick={() => handleStatusChange(s.id, 'deliveryStatus', 'DELIVERED')}
-                            title="Marcar como entregada"
-                            className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 flex items-center gap-1"
-                          >
-                            <Truck className="w-3 h-3" /> Entregar
-                          </button>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {canCreate && s.status === 'IN_PROGRESS' && (
+                            <button
+                              onClick={() => handleStatusChange(s.id, 'status', 'COMPLETED')}
+                              title="Marcar como completada"
+                              className="px-2 py-1 text-xs bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 flex items-center gap-1"
+                            >
+                              <CheckCircle2 className="w-3 h-3" /> Completar
+                            </button>
+                          )}
+                          {canCreate && s.status === 'COMPLETED' && s.deliveryStatus === 'PENDING' && (
+                            <button
+                              onClick={() => handleStatusChange(s.id, 'deliveryStatus', 'DELIVERED')}
+                              title="Marcar como entregada"
+                              className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 flex items-center gap-1"
+                            >
+                              <Truck className="w-3 h-3" /> Entregar
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => handleDelete(s.id, s.solutionNumber)}
+                              title="Eliminar solución"
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                     {/* Expanded detail row */}

@@ -25,32 +25,7 @@ function fmtDate(d: string) {
 }
 
 function printDiagnosis(diag: any) {
-  const win = window.open('', '_blank', 'width=800,height=700');
-  if (!win) { toast.error('Activa las ventanas emergentes para descargar'); return; }
-  const fmt = (d: string) => new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
-  win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
-<title>Diagnóstico ${diag.diagnosisNumber}</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1e293b;padding:32px}.header{border-bottom:3px solid #0f766e;padding-bottom:16px;margin-bottom:24px}.header h1{font-size:22px;color:#0f766e}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:8px}.field{background:#f8fafc;border-left:3px solid #0f766e;padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:8px;line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.footer{margin-top:40px;border-top:1px solid #e2e8f0;padding-top:16px;color:#94a3b8;font-size:11px;text-align:center}</style>
-</head><body>
-<div class="header"><h1>Diagnóstico Técnico</h1><p>${fmt(diag.createdAt)}</p></div>
-<p style="margin-bottom:16px"><strong>${diag.diagnosisNumber}</strong> — Ticket: <strong>${diag.ticket?.ticketNumber ?? '—'}</strong></p>
-<div class="grid" style="margin-bottom:20px">
-  <div><div class="section-title">Equipo</div><p>${[diag.asset?.brand, diag.asset?.model].filter(Boolean).join(' ') || '—'}</p></div>
-  <div><div class="section-title">Técnico</div><p>${diag.technician?.name ?? '—'}</p></div>
-</div>
-${diag.description ? `<div style="margin-bottom:16px"><div class="section-title">Descripción</div><div class="field">${diag.description}</div></div>` : ''}
-${diag.problemCause ? `<div style="margin-bottom:16px"><div class="section-title">Causa</div><div class="field">${diag.problemCause}</div></div>` : ''}
-${diag.recommendation ? `<div style="margin-bottom:16px"><div class="section-title">Recomendación</div><div class="field">${diag.recommendation}</div></div>` : ''}
-<div class="grid">
-  ${diag.estimatedCost ? `<div><div class="section-title">Costo estimado</div><p style="font-size:18px;font-weight:700;color:#15803d">$${Number(diag.estimatedCost).toLocaleString('es-CO')}</p></div>` : ''}
-  ${diag.estimatedTime ? `<div><div class="section-title">Tiempo estimado</div><p><strong>${diag.estimatedTime}</strong></p></div>` : ''}
-</div>
-<p style="margin-top:16px"><strong>¿Requiere reparación?</strong> ${diag.requiresRepair ? 'Sí' : 'No'}</p>
-<div class="footer">Documento generado el ${fmt(new Date().toISOString())}<br/>Su aprobación autoriza el inicio de la reparación.</div>
-</body></html>`);
-  win.document.close();
-  win.focus();
-  setTimeout(() => win.print(), 500);
+  window.open(`/api/diagnosticos/${diag.id}/reporte`, '_blank');
 }
 
 function DiagnosisCard({ diag, onAction }: { diag: any; onAction: (id: string, status: string) => void }) {
