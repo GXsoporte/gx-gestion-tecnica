@@ -71,21 +71,37 @@ export const PRIORITY_COLORS: Record<string, string> = {
 };
 
 export const TICKET_STATUS_LABELS: Record<string, string> = {
-  OPEN: 'Abierto',
-  IN_PROGRESS: 'En proceso',
-  PENDING_CLIENT: 'Pend. cliente',
-  ESCALATED: 'Escalado',
-  RESOLVED: 'Resuelto',
-  CLOSED: 'Cerrado',
+  OPEN:             'Abierto',
+  IN_PROGRESS:      'En proceso',
+  PENDING_CLIENT:   'Pend. cliente',
+  ESCALATED:        'Escalado',
+  RESOLVED:         'Resuelto',
+  CLOSED:           'Cerrado',
+  // Flujo diagnóstico → solución
+  IN_DIAGNOSIS:     'En diagnóstico',
+  DIAGNOSIS_SENT:   'Diagnóstico enviado',
+  REPAIR_APPROVED:  'Reparación aprobada',
+  REPAIR_REJECTED:  'Reparación rechazada',
+  REPAIR_DONE:      'Reparación completada',
+  DELIVERED:        'Entregado',
+  ARCHIVED:         'Archivado',
 };
 
 export const TICKET_STATUS_COLORS: Record<string, string> = {
-  OPEN: 'bg-blue-50 text-blue-700 border-blue-200',
-  IN_PROGRESS: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  PENDING_CLIENT: 'bg-purple-50 text-purple-700 border-purple-200',
-  ESCALATED: 'bg-red-50 text-red-700 border-red-200',
-  RESOLVED: 'bg-green-50 text-green-700 border-green-200',
-  CLOSED: 'bg-slate-100 text-slate-600 border-slate-200',
+  OPEN:             'bg-blue-50 text-blue-700 border-blue-200',
+  IN_PROGRESS:      'bg-yellow-50 text-yellow-700 border-yellow-200',
+  PENDING_CLIENT:   'bg-purple-50 text-purple-700 border-purple-200',
+  ESCALATED:        'bg-red-50 text-red-700 border-red-200',
+  RESOLVED:         'bg-green-50 text-green-700 border-green-200',
+  CLOSED:           'bg-slate-100 text-slate-600 border-slate-200',
+  // Flujo diagnóstico → solución
+  IN_DIAGNOSIS:     'bg-indigo-50 text-indigo-700 border-indigo-200',
+  DIAGNOSIS_SENT:   'bg-cyan-50 text-cyan-700 border-cyan-200',
+  REPAIR_APPROVED:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+  REPAIR_REJECTED:  'bg-red-50 text-red-700 border-red-200',
+  REPAIR_DONE:      'bg-teal-50 text-teal-700 border-teal-200',
+  DELIVERED:        'bg-purple-50 text-purple-700 border-purple-200',
+  ARCHIVED:         'bg-slate-100 text-slate-500 border-slate-200',
 };
 
 export const ACTIVITY_STATUS_LABELS: Record<string, string> = {

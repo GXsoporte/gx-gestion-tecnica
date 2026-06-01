@@ -17,8 +17,12 @@ import {
   Send,
   Edit2,
   Loader2,
+  Stethoscope,
+  Wrench,
+  ArrowRight,
 } from 'lucide-react';
 import { FileUpload } from '@/components/ui/file-upload';
+import Link from 'next/link';
 import {
   cn,
   formatDateTime,
@@ -30,6 +34,21 @@ import {
   PRIORITY_COLORS,
   TICKET_TYPE_LABELS,
 } from '@/lib/utils';
+
+const DIAG_STATUS: Record<string, { label: string; color: string; bg: string }> = {
+  DRAFT:    { label: 'Borrador',    color: 'text-gray-600',    bg: 'bg-gray-100'    },
+  SENT:     { label: 'Enviado al cliente', color: 'text-blue-700', bg: 'bg-blue-100' },
+  APPROVED: { label: 'Aprobado',    color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  REJECTED: { label: 'No aprobado', color: 'text-red-700',     bg: 'bg-red-100'     },
+  COMPLETED:{ label: 'Completado',  color: 'text-purple-700',  bg: 'bg-purple-100'  },
+  INFO_REQUESTED: { label: 'Más info solicitada', color: 'text-amber-700', bg: 'bg-amber-100' },
+};
+
+const SOL_STATUS: Record<string, { label: string; color: string; bg: string }> = {
+  IN_PROGRESS: { label: 'En proceso',  color: 'text-blue-700',    bg: 'bg-blue-100'    },
+  COMPLETED:   { label: 'Completada',  color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  CANCELLED:   { label: 'Cancelada',   color: 'text-red-700',     bg: 'bg-red-100'     },
+};
 
 export function TicketDetailClient({ id }: { id: string }) {
   const router = useRouter();
@@ -406,6 +425,63 @@ export function TicketDetailClient({ id }: { id: string }) {
               </div>
             </div>
           )}
+
+          {/* Diagnóstico y Solución vinculados */}
+          {ticket.diagnoses?.length > 0 && (() => {
+            const diag = ticket.diagnoses[0];
+            const sol  = diag.solutions?.[0];
+            const diagCfg = DIAG_STATUS[diag.status] ?? DIAG_STATUS.DRAFT;
+            const solCfg  = sol ? SOL_STATUS[sol.status] ?? SOL_STATUS.IN_PROGRESS : null;
+
+            return (
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-5 shadow-card space-y-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Stethoscope className="w-4 h-4 text-primary" />
+                  Diagnóstico técnico
+                </h3>
+
+                {/* Diagnóstico */}
+                <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/40 border border-border/60">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Stethoscope className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm font-mono font-semibold text-primary">{diag.diagnosisNumber}</span>
+                    <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0', diagCfg.bg, diagCfg.color)}>
+                      {diagCfg.label}
+                    </span>
+                  </div>
+                  <Link
+                    href="/diagnosticos"
+                    className="flex items-center gap-1 text-xs text-primary hover:underline font-medium flex-shrink-0"
+                  >
+                    Ver diagnóstico <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+
+                {/* Solución (si existe) */}
+                {sol && solCfg ? (
+                  <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/40 border border-border/60">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Wrench className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm font-mono font-semibold text-primary">{sol.solutionNumber}</span>
+                      <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0', solCfg.bg, solCfg.color)}>
+                        {solCfg.label}
+                      </span>
+                    </div>
+                    <Link
+                      href="/soluciones"
+                      className="flex items-center gap-1 text-xs text-primary hover:underline font-medium flex-shrink-0"
+                    >
+                      Ver solución <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                ) : diag.status === 'APPROVED' ? (
+                  <p className="text-xs text-muted-foreground italic px-1">
+                    Diagnóstico aprobado — pendiente de crear solución
+                  </p>
+                ) : null}
+              </div>
+            );
+          })()}
 
           {/* Resolución */}
           {ticket.resolution && (

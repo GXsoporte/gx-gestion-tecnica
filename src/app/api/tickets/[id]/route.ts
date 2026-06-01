@@ -38,6 +38,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         timeEntries: {
           include: { user: { select: { name: true } } },
         },
+        diagnoses: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: {
+            id: true, diagnosisNumber: true, status: true, createdAt: true,
+            solutions: {
+              take: 1,
+              select: { id: true, solutionNumber: true, status: true },
+            },
+          },
+        },
       },
     });
 
