@@ -93,7 +93,7 @@ const navItems: NavItem[] = [
     label: 'Soluciones',
     href: '/soluciones',
     icon: Hammer,
-    roles: ['SUPER_ADMIN', 'COMPANY_ADMIN', 'TECHNICIAN', 'COORDINATOR'],
+    roles: ['SUPER_ADMIN', 'COMPANY_ADMIN', 'TECHNICIAN', 'COORDINATOR', 'CLIENT'],
   },
   {
     label: 'Servicios',
