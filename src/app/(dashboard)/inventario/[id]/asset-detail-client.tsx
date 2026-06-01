@@ -110,6 +110,84 @@ export function AssetDetailClient({ id }: { id: string }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-5">
+          {/* Especificaciones */}
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-5 shadow-card">
+            <h3 className="section-title mb-4">Especificaciones</h3>
+            <div className="space-y-3">
+              {asset.serial && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Serial</p>
+                  <p className="text-sm font-mono font-medium">{asset.serial}</p>
+                </div>
+              )}
+              {asset.processor && (
+                <div className="flex items-start gap-2">
+                  <Cpu className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Procesador</p>
+                    <p className="text-sm">{asset.processor}</p>
+                  </div>
+                </div>
+              )}
+              {asset.ram && (
+                <div className="flex items-start gap-2">
+                  <MemoryStick className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">RAM</p>
+                    <p className="text-sm">{asset.ram}</p>
+                  </div>
+                </div>
+              )}
+              {asset.storage && (
+                <div className="flex items-start gap-2">
+                  <HardDrive className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Almacenamiento</p>
+                    <p className="text-sm">{asset.storage}</p>
+                  </div>
+                </div>
+              )}
+              {asset.operatingSystem && (
+                <div className="flex items-start gap-2">
+                  <Monitor className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Sistema operativo</p>
+                    <p className="text-sm">{asset.operatingSystem}</p>
+                  </div>
+                </div>
+              )}
+              {asset.purchaseDate && (
+                <div className="flex items-start gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Fecha de compra</p>
+                    <p className="text-sm">{formatDate(asset.purchaseDate)}</p>
+                  </div>
+                </div>
+              )}
+              {asset.warrantyExpiry && (
+                <div className="flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Garantía</p>
+                    <p className={cn('text-sm', warrantyExpired ? 'text-red-600 font-medium' : '')}>
+                      {formatDate(asset.warrantyExpiry)}
+                      {warrantyExpired && ' (Expirada)'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Software instalado */}
+          {asset.softwareList && (
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-5 shadow-card">
+              <h3 className="section-title mb-3">Software instalado</h3>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{asset.softwareList}</p>
+            </div>
+          )}
+
           {/* Asignación */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-5 shadow-card space-y-4">
             <h3 className="section-title">Asignación</h3>
@@ -288,82 +366,6 @@ export function AssetDetailClient({ id }: { id: string }) {
             )}
           </div>
 
-          {/* Especificaciones */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-5 shadow-card">
-            <h3 className="section-title mb-4">Especificaciones</h3>
-            <div className="space-y-3">
-              {asset.serial && (
-                <div>
-                  <p className="text-xs text-muted-foreground">Serial</p>
-                  <p className="text-sm font-mono font-medium">{asset.serial}</p>
-                </div>
-              )}
-              {asset.processor && (
-                <div className="flex items-start gap-2">
-                  <Cpu className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Procesador</p>
-                    <p className="text-sm">{asset.processor}</p>
-                  </div>
-                </div>
-              )}
-              {asset.ram && (
-                <div className="flex items-start gap-2">
-                  <MemoryStick className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">RAM</p>
-                    <p className="text-sm">{asset.ram}</p>
-                  </div>
-                </div>
-              )}
-              {asset.storage && (
-                <div className="flex items-start gap-2">
-                  <HardDrive className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Almacenamiento</p>
-                    <p className="text-sm">{asset.storage}</p>
-                  </div>
-                </div>
-              )}
-              {asset.operatingSystem && (
-                <div className="flex items-start gap-2">
-                  <Monitor className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Sistema operativo</p>
-                    <p className="text-sm">{asset.operatingSystem}</p>
-                  </div>
-                </div>
-              )}
-              {asset.purchaseDate && (
-                <div className="flex items-start gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Fecha de compra</p>
-                    <p className="text-sm">{formatDate(asset.purchaseDate)}</p>
-                  </div>
-                </div>
-              )}
-              {asset.warrantyExpiry && (
-                <div className="flex items-start gap-2">
-                  <Shield className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Garantía</p>
-                    <p className={cn('text-sm', warrantyExpired ? 'text-red-600 font-medium' : '')}>
-                      {formatDate(asset.warrantyExpiry)}
-                      {warrantyExpired && ' (Expirada)'}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {asset.softwareList && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-border p-5 shadow-card">
-              <h3 className="section-title mb-3">Software instalado</h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{asset.softwareList}</p>
-            </div>
-          )}
         </div>
 
         <div className="lg:col-span-2 space-y-5">
