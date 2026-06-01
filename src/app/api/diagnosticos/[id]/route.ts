@@ -80,7 +80,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (data.status === 'SENT')      updateData.sentAt     = new Date();
     if (data.status === 'APPROVED')  updateData.approvedAt = new Date();
     if (data.status === 'REJECTED')  updateData.rejectedAt = new Date();
-    if (data.status === 'COMPLETED') updateData.completedAt = new Date();
+    // completedAt no existe en el schema, se omite
 
     const diagnosis = await db.diagnosis.update({
       where: { id: params.id },

@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     // Marcar diagnóstico como COMPLETADO y archivar el ticket
     await db.diagnosis.update({
       where: { id: data.diagnosisId },
-      data:  { status: 'COMPLETED', completedAt: new Date() },
+      data:  { status: 'COMPLETED' },
     });
 
     await db.ticket.update({
