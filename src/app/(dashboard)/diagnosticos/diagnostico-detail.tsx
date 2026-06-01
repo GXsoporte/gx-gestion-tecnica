@@ -8,7 +8,7 @@ import {
   X, CheckCircle2, XCircle, Send, ArrowRight,
   Ticket, Monitor, User, Stethoscope, Wrench,
   Clock, DollarSign, FileText, AlertTriangle,
-  Loader2, Mail, Download,
+  Loader2, Mail, Download, Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -67,6 +67,7 @@ export function DiagnosticoDetail({
   const canManage      = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'TECHNICIAN'].includes(userRole);
   const canApprove     = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'CLIENT'].includes(userRole);
   const canSolution    = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR', 'TECHNICIAN'].includes(userRole);
+  const canDelete      = ['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR'].includes(userRole);
 
   const cfg        = STATUS_CONFIG[diag.status] ?? STATUS_CONFIG.DRAFT;
   const StatusIcon = cfg.icon;
@@ -85,6 +86,21 @@ export function DiagnosticoDetail({
       );
     } catch (e: any) {
       toast.error(e.response?.data?.error || 'Error al actualizar');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const deleteDiag = async () => {
+    if (!confirm(`¿Eliminar el diagnóstico ${diag.diagnosisNumber}? Esta acción no se puede deshacer.`)) return;
+    setLoading('delete');
+    try {
+      await axios.delete(`/api/diagnosticos/${diag.id}`);
+      qc.invalidateQueries({ queryKey: ['diagnoses'] });
+      toast.success('Diagnóstico eliminado');
+      onClose();
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || 'Error al eliminar');
     } finally {
       setLoading(null);
     }
@@ -130,7 +146,6 @@ export function DiagnosticoDetail({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* Descargar / Imprimir */}
             <button
               onClick={() => printDiagnosis(diag)}
               className="flex items-center gap-1.5 text-xs border border-border px-3 py-1.5 rounded-xl hover:bg-muted transition-colors font-medium"
@@ -139,6 +154,19 @@ export function DiagnosticoDetail({
               <Download className="w-3.5 h-3.5" />
               Descargar
             </button>
+            {canDelete && (
+              <button
+                onClick={deleteDiag}
+                disabled={!!loading}
+                className="flex items-center gap-1.5 text-xs border border-red-200 text-red-600 px-3 py-1.5 rounded-xl hover:bg-red-50 transition-colors font-medium disabled:opacity-50"
+                title="Eliminar diagnóstico"
+              >
+                {loading === 'delete'
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Trash2 className="w-3.5 h-3.5" />}
+                Eliminar
+              </button>
+            )}
             <button onClick={onClose} className="p-2 rounded-xl hover:bg-muted transition-colors">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>

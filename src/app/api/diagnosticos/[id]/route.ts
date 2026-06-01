@@ -106,3 +106,31 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return apiError(e.message, 500);
   }
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await requireAuth();
+    if (!['SUPER_ADMIN', 'COMPANY_ADMIN', 'COORDINATOR'].includes(session.user.role)) {
+      return apiError('Sin permisos para eliminar diagnósticos', 403);
+    }
+    const filter = getCompanyFilter(session);
+    const companyId = filter.companyId ?? session.user.companyId ?? '__NO_COMPANY__';
+
+    const existing = await db.diagnosis.findFirst({ where: { id: params.id, ...filter } });
+    if (!existing) return apiError('Diagnóstico no encontrado', 404);
+
+    // Revertir ticket al estado anterior
+    if (existing.ticketId) {
+      await db.ticket.update({
+        where: { id: existing.ticketId },
+        data: { status: 'IN_PROGRESS' },
+      }).catch(() => {});
+    }
+
+    await db.diagnosis.delete({ where: { id: params.id } });
+    await logAudit('DELETE', 'Diagnosis', params.id, companyId, session.user.id);
+    return apiResponse({ deleted: true });
+  } catch (e: any) {
+    return apiError(e.message, 500);
+  }
+}
