@@ -6,9 +6,6 @@ export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
   if (session) {
-    if ((session.user as any).role === 'CLIENT') {
-      redirect('/portal');
-    }
     redirect('/dashboard');
   } else {
     redirect('/login');

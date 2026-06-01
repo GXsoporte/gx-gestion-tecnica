@@ -7,7 +7,6 @@ export default async function PortalLayout({ children }: { children: React.React
   const session = await getServerSession(authOptions);
 
   if (!session) redirect('/login');
-  if ((session.user as any).role !== 'CLIENT') redirect('/dashboard');
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
