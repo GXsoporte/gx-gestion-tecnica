@@ -11,6 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       where: { id: params.id, ...filter },
       include: {
         client: true,
+        clientUser: true,
         tickets: {
           orderBy: { createdAt: 'desc' },
           take: 10,
